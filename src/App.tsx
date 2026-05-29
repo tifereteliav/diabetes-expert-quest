@@ -33,6 +33,7 @@ function App() {
   });
 
   const activeDialogueNode = patientCase1.dialogueTree[state.currentDialogueId];
+  const [isDataRead, setIsDataRead] = useState(false);
 
   // Handler for Phase change
   const setPhase = (phase: SimulationState['currentPhase']) => {
@@ -110,13 +111,6 @@ function App() {
                 הערך, אבחן ובנה תוכנית טיפול מותאמת אישית עבור מטופל מורכב עם סוכרת מסוג 2.
               </p>
             </div>
-            <button
-              onClick={() => setPhase('anamnesis')}
-              className="premium-btn-primary flex items-center justify-center space-x-2 space-x-reverse self-start md:self-auto"
-            >
-              <span>התחל סימולציה</span>
-              <ArrowLeft className="h-5 w-5" />
-            </button>
           </div>
 
           {/* Grid Layout of Patient Case Detail */}
@@ -149,50 +143,127 @@ function App() {
                 </div>
               </div>
 
-              {/* Lab Panel Snapshot */}
-              <div>
-                <div className="flex items-center space-x-2 space-x-reverse mb-4">
-                  <FileText className="h-5 w-5 text-slate-600" />
-                  <h4 className="text-base sm:text-lg font-bold text-slate-900">תוצאות מעבדה מרכזיות</h4>
+              {/* Lab Panel Snapshot - Grouped Clinical Matrix */}
+              <div className="space-y-6">
+                <div className="flex items-center space-x-2 space-x-reverse mb-2">
+                  <FileText className="h-5 w-5 text-slate-700" />
+                  <h4 className="text-lg font-bold text-slate-900">לוח מדדים ובדיקות מעבדה מורחב</h4>
                 </div>
-                <div className="overflow-x-auto rounded-2xl border border-slate-100 bg-white">
-                  <table className="w-full text-right text-sm border-collapse">
-                    <thead>
-                      <tr className="bg-slate-50 border-b border-slate-100 text-xs font-semibold text-slate-500 uppercase tracking-wider">
-                        <th className="px-6 py-4 text-right">בדיקה</th>
-                        <th className="px-6 py-4 text-right">תוצאה</th>
-                        <th className="px-6 py-4 text-right">טווח תקין / יעד</th>
-                        <th className="px-6 py-4 text-right">משמעות קלינית</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-slate-50 font-medium">
-                      <tr>
-                        <td className="px-6 py-4 text-slate-900 font-bold">HbA1c</td>
-                        <td className="px-6 py-4 text-rose-600 font-bold">{patientCase1.labs.glycemic[0].value}%</td>
-                        <td className="px-6 py-4 text-slate-400">{patientCase1.labs.glycemic[0].normalRange}</td>
-                        <td className="px-6 py-4 text-xs text-slate-500 max-w-[240px] leading-relaxed">{patientCase1.labs.glycemic[0].interpretation}</td>
-                      </tr>
-                      <tr>
-                        <td className="px-6 py-4 text-slate-900 font-bold">eGFR</td>
-                        <td className="px-6 py-4 text-amber-600 font-bold">{patientCase1.labs.renal[1].value}</td>
-                        <td className="px-6 py-4 text-slate-400">{patientCase1.labs.renal[1].normalRange}</td>
-                        <td className="px-6 py-4 text-xs text-slate-500 max-w-[240px] leading-relaxed">{patientCase1.labs.renal[1].interpretation}</td>
-                      </tr>
-                      <tr>
-                        <td className="px-6 py-4 text-slate-900 font-bold">UACR</td>
-                        <td className="px-6 py-4 text-rose-600 font-bold">{patientCase1.labs.renal[2].value} mg/g</td>
-                        <td className="px-6 py-4 text-slate-400">{patientCase1.labs.renal[2].normalRange}</td>
-                        <td className="px-6 py-4 text-xs text-slate-500 max-w-[240px] leading-relaxed">{patientCase1.labs.renal[2].interpretation}</td>
-                      </tr>
-                      <tr>
-                        <td className="px-6 py-4 text-slate-900 font-bold">LDL Cholesterol</td>
-                        <td className="px-6 py-4 text-rose-600 font-bold">{patientCase1.labs.lipids[0].value} mg/dL</td>
-                        <td className="px-6 py-4 text-slate-400">{patientCase1.labs.lipids[0].normalRange}</td>
-                        <td className="px-6 py-4 text-xs text-slate-500 max-w-[240px] leading-relaxed">{patientCase1.labs.lipids[0].interpretation}</td>
-                      </tr>
-                    </tbody>
-                  </table>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  
+                  {/* Panel 1: אבחון ואיזון סוכר */}
+                  <div className="bg-white border border-slate-100 rounded-2xl shadow-sm overflow-hidden transition-all duration-300 hover:border-sky-200">
+                    <div className="bg-sky-50/50 px-4 py-3 border-b border-sky-100/50 flex items-center justify-between">
+                      <span className="text-xs font-black text-sky-800">אבחון ואיזון סוכר</span>
+                      <Activity className="h-4 w-4 text-sky-500" />
+                    </div>
+                    <div className="p-4 space-y-4 divide-y divide-slate-50">
+                      {patientCase1.labs.glycemic.slice(0, 2).map((lab) => (
+                        <div key={lab.name} className="pt-3 first:pt-0">
+                          <div className="flex justify-between items-start">
+                            <span className="text-sm font-bold text-slate-900">{lab.name}</span>
+                            <div className="text-right">
+                              <span className={`text-sm font-black px-2 py-0.5 rounded-lg ${lab.status === 'high' ? 'text-rose-600 bg-rose-50' : 'text-emerald-600 bg-emerald-50'}`}>{lab.value}{lab.unit}</span>
+                              <p className="text-[10px] text-slate-400 font-semibold mt-0.5">יעד בצום: {lab.normalRange}</p>
+                            </div>
+                          </div>
+                          <p className="text-xs text-slate-500 font-medium leading-relaxed mt-1.5">{lab.interpretation}</p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Panel 2: אבחנה מבדלת (סוג סוכרת) */}
+                  <div className="bg-white border border-slate-100 rounded-2xl shadow-sm overflow-hidden transition-all duration-300 hover:border-amber-200">
+                    <div className="bg-amber-50/50 px-4 py-3 border-b border-amber-100/50 flex items-center justify-between">
+                      <span className="text-xs font-black text-amber-800">אבחנה מבדלת (סוג סוכרת)</span>
+                      <HelpCircle className="h-4 w-4 text-amber-500" />
+                    </div>
+                    <div className="p-4 space-y-4 divide-y divide-slate-50">
+                      {patientCase1.labs.glycemic.slice(2, 4).map((lab) => (
+                        <div key={lab.name} className="pt-3 first:pt-0">
+                          <div className="flex justify-between items-start">
+                            <span className="text-sm font-bold text-slate-900">{lab.name}</span>
+                            <div className="text-right">
+                              <span className="text-sm font-black px-2 py-0.5 rounded-lg text-emerald-600 bg-emerald-50">{lab.value}</span>
+                              <p className="text-[10px] text-slate-400 font-semibold mt-0.5">טווח: {lab.normalRange}</p>
+                            </div>
+                          </div>
+                          <p className="text-xs text-slate-500 font-medium leading-relaxed mt-1.5">{lab.interpretation}</p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Panel 3: תפקודי כליות ושתן */}
+                  <div className="bg-white border border-slate-100 rounded-2xl shadow-sm overflow-hidden transition-all duration-300 hover:border-emerald-200">
+                    <div className="bg-emerald-50/50 px-4 py-3 border-b border-emerald-100/50 flex items-center justify-between">
+                      <span className="text-xs font-black text-emerald-800">תפקודי כליות ושתן</span>
+                      <FileText className="h-4 w-4 text-emerald-500" />
+                    </div>
+                    <div className="p-4 space-y-4 divide-y divide-slate-50">
+                      {patientCase1.labs.renal.map((lab) => (
+                        <div key={lab.name} className="pt-3 first:pt-0">
+                          <div className="flex justify-between items-start">
+                            <span className="text-sm font-bold text-slate-900">{lab.name}</span>
+                            <div className="text-right">
+                              <span className={`text-sm font-black px-2 py-0.5 rounded-lg ${lab.status === 'high' ? 'text-rose-600 bg-rose-50' : lab.status === 'low' ? 'text-amber-600 bg-amber-50' : 'text-emerald-600 bg-emerald-50'}`}>{lab.value} {lab.unit}</span>
+                              <p className="text-[10px] text-slate-400 font-semibold mt-0.5">טווח: {lab.normalRange}</p>
+                            </div>
+                          </div>
+                          <p className="text-xs text-slate-500 font-medium leading-relaxed mt-1.5">{lab.interpretation}</p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Panel 4: פרופיל שומנים ולחץ דם */}
+                  <div className="bg-white border border-slate-100 rounded-2xl shadow-sm overflow-hidden transition-all duration-300 hover:border-violet-200">
+                    <div className="bg-violet-50/50 px-4 py-3 border-b border-violet-100/50 flex items-center justify-between">
+                      <span className="text-xs font-black text-violet-800">פרופיל שומנים ולחץ דם</span>
+                      <Activity className="h-4 w-4 text-violet-500" />
+                    </div>
+                    <div className="p-4 space-y-4 divide-y divide-slate-50">
+                      {patientCase1.labs.lipids.map((lab) => (
+                        <div key={lab.name} className="pt-3 first:pt-0">
+                          <div className="flex justify-between items-start">
+                            <span className="text-sm font-bold text-slate-900">{lab.name}</span>
+                            <div className="text-right">
+                              <span className={`text-sm font-black px-2 py-0.5 rounded-lg ${lab.status === 'high' ? 'text-rose-600 bg-rose-50' : lab.status === 'low' ? 'text-amber-600 bg-amber-50' : 'text-emerald-600 bg-emerald-50'}`}>{lab.value} {lab.unit}</span>
+                              <p className="text-[10px] text-slate-400 font-semibold mt-0.5">יעד: {lab.normalRange}</p>
+                            </div>
+                          </div>
+                          <p className="text-xs text-slate-500 font-medium leading-relaxed mt-1.5">{lab.interpretation}</p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
                 </div>
+
+                {/* Panel 5: כבד ואנמיה */}
+                <div className="bg-white border border-slate-100 rounded-2xl shadow-sm overflow-hidden transition-all duration-300 hover:border-rose-200">
+                  <div className="bg-rose-50/50 px-4 py-3 border-b border-rose-100/50 flex items-center justify-between">
+                    <span className="text-xs font-black text-rose-800">כבד ואנמיה</span>
+                    <Heart className="h-4 w-4 text-rose-500 animate-pulse" />
+                  </div>
+                  <div className="p-6 grid grid-cols-1 md:grid-cols-3 gap-6 divide-y md:divide-y-0 md:divide-x md:divide-x-reverse divide-slate-100">
+                    {patientCase1.labs.other.slice(2, 5).map((lab, index) => (
+                      <div key={lab.name} className={`${index > 0 ? 'pt-4 md:pt-0 md:pr-6' : ''}`}>
+                        <div className="flex justify-between items-start">
+                          <span className="text-sm font-bold text-slate-900">{lab.name}</span>
+                          <div className="text-right">
+                            <span className={`text-sm font-black px-2 py-0.5 rounded-lg ${lab.status === 'high' ? 'text-rose-600 bg-rose-50' : lab.status === 'low' ? 'text-amber-600 bg-amber-50' : 'text-emerald-600 bg-emerald-50'}`}>{lab.value} {lab.unit}</span>
+                            <p className="text-[10px] text-slate-400 font-semibold mt-0.5">טווח: {lab.normalRange}</p>
+                          </div>
+                        </div>
+                        <p className="text-xs text-slate-500 font-medium leading-relaxed mt-1.5">{lab.interpretation}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
               </div>
 
             </div>
@@ -211,11 +282,11 @@ function App() {
                 <ul className="text-sm space-y-2">
                   <li className="flex items-center space-x-2 space-x-reverse text-slate-700 bg-white px-3 py-2 rounded-xl border border-slate-100 shadow-sm font-medium">
                     <span className="h-2 w-2 rounded-full bg-sky-500" />
-                    <span>Metformin 1000mg BID (פעמיים ביום)</span>
+                    <span>Metformin 850mg X2 ביום</span>
                   </li>
                   <li className="flex items-center space-x-2 space-x-reverse text-slate-700 bg-white px-3 py-2 rounded-xl border border-slate-100 shadow-sm font-medium">
                     <span className="h-2 w-2 rounded-full bg-indigo-500" />
-                    <span>רמיפריל (טרייטיס / Tritace) 10 מ״ג פעם ביום</span>
+                    <span>רמיפריל (טרייטיס / Tritace) 5 מ״ג פעם ביום</span>
                   </li>
                   <li className="flex items-center space-x-2 space-x-reverse text-slate-700 bg-white px-3 py-2 rounded-xl border border-slate-100 shadow-sm font-medium">
                     <span className="h-2 w-2 rounded-full bg-violet-500" />
@@ -225,6 +296,38 @@ function App() {
               </div>
             </div>
 
+          </div>
+
+          {/* Action Card: Consent & Start Simulation */}
+          <div className="mt-8 bg-slate-50/50 border border-slate-200/50 rounded-3xl p-6 flex flex-col md:flex-row items-center justify-between gap-6 transition-all duration-300">
+            <div className="flex items-start space-x-3 space-x-reverse max-w-2xl">
+              <input
+                id="consent-checkbox"
+                type="checkbox"
+                checked={isDataRead}
+                onChange={(e) => setIsDataRead(e.target.checked)}
+                className="mt-1 h-5 w-5 rounded border-slate-300 text-sky-600 focus:ring-sky-500 cursor-pointer shrink-0"
+              />
+              <label 
+                htmlFor="consent-checkbox" 
+                className="text-sm font-semibold text-slate-700 select-none cursor-pointer leading-relaxed text-right"
+              >
+                אישור קריאת נתונים: קראתי ועברתי על הממצאים הקליניים, תוצאות המעבדה ותפקודי האיברים של המטופל.
+              </label>
+            </div>
+            
+            <button
+              onClick={() => setPhase('anamnesis')}
+              disabled={!isDataRead}
+              className={`premium-btn-primary flex items-center justify-center space-x-2 space-x-reverse px-8 py-4 text-base font-bold transition-all duration-500 w-full md:w-auto shrink-0 ${
+                isDataRead
+                  ? 'bg-slate-900 text-white hover:bg-slate-800 hover:-translate-y-0.5 active:translate-y-0 shadow-lg cursor-pointer'
+                  : 'bg-slate-200 text-slate-400 cursor-not-allowed opacity-60 shadow-none hover:transform-none pointer-events-none'
+              }`}
+            >
+              <span>התחל סימולציה</span>
+              <ArrowLeft className="h-5 w-5" />
+            </button>
           </div>
         </div>
       )}
