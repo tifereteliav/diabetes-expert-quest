@@ -26,7 +26,7 @@ export const patientCase1: PatientCase = {
     {
       category: 'medical_history',
       label: 'היסטוריה רפואית',
-      value: 'סוכרת מסוג 2 (T2D) שאובחנה לפני 4 שנים. יתר לחץ דם ראשוני (3 שנים). דיסליפידמיה (5 שנים). טיפול תרופתי נוכחי: Metformin 1000mg פעמיים ביום (BID), Lisinopril 10mg פעם ביום, Atorvastatin 20mg פעם ביום.',
+      value: 'סוכרת מסוג 2 (T2D) שאובחנה לפני 4 שנים. יתר לחץ דם ראשוני (3 שנים). דיסליפידמיה (5 שנים). טיפול תרופתי נוכחי: Metformin 1000mg פעמיים ביום (BID), רמיפריל (טרייטיס / Tritace) 10 מ״ג פעם ביום, Atorvastatin 20mg פעם ביום.',
     },
     {
       category: 'lifestyle',
@@ -86,7 +86,7 @@ export const patientCase1: PatientCase = {
         unit: 'mg/g',
         normalRange: '< 30 mg/g',
         status: 'high',
-        interpretation: 'מיקרואלבומינוריה מאושרת. סמן מוקדם למחלת כליות סוכרתית (נפרופתיה סוכרתית). הטיפול ב-Lisinopril מסייע להגנה כלייתית, אך יש לאזן את ערכי הגלוקוז בצורה מיטבית למניעת הידרדרות.',
+        interpretation: 'מיקרואלבומינוריה מאושרת. סמן מוקדם למחלת כליות סוכרתית (נפרופתיה סוכרתית). הטיפול ברמיפריל (טרייטיס / Tritace) מסייע להגנה כלייתית, אך יש לאזן את ערכי הגלוקוז בצורה מיטבית למניעת הידרדרות.',
       },
     ],
     lipids: [
@@ -187,7 +187,7 @@ export const patientCase1: PatientCase = {
         {
           id: 'start_accusatory',
           text: '"כשמסתכלים על המספרים האלה, ארתור, ברור שלא הקפדת על תוכנית התרופות ואורח החיים שלך. בוא נדבר על הסיבות לכך שאתה מתקשה לנהל את הסוכרת שלך."',
-          nextId: 'hostile_response',
+          nextId: 'game_over_node',
           impact: { accuracy: 2, alliance: -15, safety: 0 },
           rationale: 'האשמת המטופל פוגעת באופן מיידי בברית הטיפולית, מייצרת מגננה וגורמת למטופל להסתיר מידע חיוני כדי להימנע משיפוטיות נוספת.',
         },
@@ -208,7 +208,7 @@ export const patientCase1: PatientCase = {
         {
           id: 'coop_dismissive',
           text: '"בסיכון הלבבי נטפל בהמשך. כרגע עלינו להתרכז אך ורק ב-HbA1c שהוא 8.2% ובעקצוצים ברגליים. בוא ניכנס לפרטים של נטילת התרופות שלך."',
-          nextId: 'explore_phase',
+          nextId: 'game_over_node',
           impact: { accuracy: 5, alliance: -2, safety: 5 },
           rationale: 'מתעלם מהחשיפה הרגשית של המטופל לגבי אביו, ומפספס הזדמנות מפתח לחיבור אנושי, אף שמעבר לבירור נטילת התרופות חיוני קלינית.',
         },
@@ -229,8 +229,8 @@ export const patientCase1: PatientCase = {
         },
         {
           id: 'defensive_rigid',
-          text: '"זה עדיין לא אי ספיקת כליות, אבל אם לא נפעל עכשיו, לשם זה יגיע. זו הסיבה שעלינו להעלות מינון Lisinopril ולהוסיף כדור סוכרת נוסף כבר היום. אנא, תקשיב לי."',
-          nextId: 'explore_phase',
+          text: '"זה עדיין לא אי ספיקת כליות, אבל אם לא נפעל עכשיו, לשם זה יגיע. זו הסיבה שעלינו להעלות מינון רמיפריל (טרייטיס / Tritace) ולהוסיף כדור סוכרת נוסף כבר היום. אנא, תקשיב לי."',
+          nextId: 'game_over_node',
           impact: { accuracy: 5, alliance: -5, safety: 5 },
           rationale: 'משתמש בהפחדה כדי לכפות ציות. גישה זו פוגעת בברית הטיפולית, מקטינה את מעורבות המטופל ומעוררת התנגדות קלינית מוגברת.',
         },
@@ -251,7 +251,7 @@ export const patientCase1: PatientCase = {
         {
           id: 'hostile_defensive',
           text: '"אני לא מטיפה לך, ארתור. אני פשוט מצביעה על העובדות: HbA1c של 8.2% לא קורה אם נוטלים את הכדורים כסדרם. אנחנו חייבים להיות מציאותיים לגבי ההיענות שלך."',
-          nextId: 'explore_phase',
+          nextId: 'game_over_node',
           impact: { accuracy: 3, alliance: -15, safety: 0 },
           rationale: 'התעקשות על עמדה שופטת ומאשימה הורסת לחלוטין את הקשר המקצועי. המטופל ייאטם לחלוטין ויסרב לשתף פעולה בהמשך הסימולציה.',
         },
@@ -275,6 +275,12 @@ export const patientCase1: PatientCase = {
       id: 'anamnesis_intro',
       speaker: 'system',
       text: 'שלב האנמנזה נפתח. בחר שאלות מפאנל השאלות מימין כדי לחקור את ההיסטוריה הרפואית של המטופל ולגלות רמזים קליניים קריטיים.',
+      choices: [],
+    },
+    game_over_node: {
+      id: 'game_over_node',
+      speaker: 'patient',
+      text: '"עזבי, אני ממהר, ניפגש בפעם אחרת. אין לי כוח לזה עכשיו."',
       choices: [],
     },
   },
