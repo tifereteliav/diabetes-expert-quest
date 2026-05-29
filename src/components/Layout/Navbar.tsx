@@ -1,5 +1,5 @@
 import React from 'react';
-import { Stethoscope, Activity, Users, ShieldAlert } from 'lucide-react';
+import { Activity, Users, ShieldAlert } from 'lucide-react';
 
 interface NavbarProps {
   currentPhase: 'welcome' | 'anamnesis' | 'physical_labs' | 'treatment' | 'counselling' | 'feedback';
@@ -32,9 +32,11 @@ export const Navbar: React.FC<NavbarProps> = ({ currentPhase, scores }) => {
         
         {/* Brand / Logo */}
         <div className="flex items-center space-x-3 space-x-reverse self-center sm:self-auto">
-          <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-slate-900 text-white shadow-md shadow-slate-950/15 shrink-0">
-            <Stethoscope className="h-6 w-6 text-sky-400" />
-          </div>
+          <img 
+            src="/logo.png" 
+            alt="לוגו ארכיטקט הסוכרת" 
+            className="h-8 md:h-12 object-contain shrink-0 transition-transform duration-300 hover:scale-105"
+          />
           <div>
             <h1 className="text-lg sm:text-xl font-bold tracking-tight text-slate-900 font-sans leading-tight">
               ארכיטקט <span className="text-sky-500">הסוכרת</span>
