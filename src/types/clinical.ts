@@ -13,6 +13,8 @@ export interface PatientDemographics {
   bmi: number;
   height: number;
   weight: number;
+  diagnosisYear?: number;
+  diagnosisAge?: number;
   vitalSigns: {
     bloodPressure: string;
     heartRate: number;
