@@ -28,18 +28,18 @@ export const Navbar: React.FC<NavbarProps> = ({ currentPhase, scores }) => {
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-slate-100 bg-white/80 backdrop-blur-md transition-all duration-300">
-      <div className="mx-auto flex h-20 max-w-7xl items-center justify-between px-6 lg:px-8">
+      <div className="mx-auto flex flex-col sm:flex-row min-h-[5rem] py-4 sm:py-0 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8 gap-4">
         
         {/* Brand / Logo */}
-        <div className="flex items-center space-x-3 space-x-reverse">
-          <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-slate-900 text-white shadow-md shadow-slate-950/15">
+        <div className="flex items-center space-x-3 space-x-reverse self-center sm:self-auto">
+          <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-slate-900 text-white shadow-md shadow-slate-950/15 shrink-0">
             <Stethoscope className="h-6 w-6 text-sky-400" />
           </div>
           <div>
-            <h1 className="text-xl font-bold tracking-tight text-slate-900 font-sans leading-tight">
+            <h1 className="text-lg sm:text-xl font-bold tracking-tight text-slate-900 font-sans leading-tight">
               ארכיטקט <span className="text-sky-500">הסוכרת</span>
             </h1>
-            <p className="text-xs font-semibold text-slate-400 tracking-wider uppercase font-sans">
+            <p className="text-[10px] sm:text-xs font-semibold text-slate-400 tracking-wider uppercase font-sans">
               סימולטור קליני למומחים
             </p>
           </div>
@@ -88,15 +88,15 @@ export const Navbar: React.FC<NavbarProps> = ({ currentPhase, scores }) => {
         </nav>
 
         {/* Score Badges */}
-        <div className="flex items-center space-x-4 space-x-reverse">
+        <div className="flex flex-wrap items-center justify-center sm:justify-end gap-3 sm:gap-4 w-full sm:w-auto">
           
           {/* Clinical Accuracy */}
-          <div className="flex flex-col items-start">
-            <div className="flex items-center space-x-1.5 space-x-reverse rounded-full border border-emerald-100 bg-emerald-50/50 px-3 py-1 text-emerald-700 shadow-sm transition-all duration-300">
-              <Activity className="h-4 w-4 text-emerald-500 animate-pulse" />
-              <span className="text-xs font-bold font-sans">דיוק קליני: {scores.accuracy}</span>
+          <div className="flex flex-col items-start shrink-0">
+            <div className="flex items-center space-x-1.5 space-x-reverse rounded-full border border-emerald-100 bg-emerald-50/50 px-2.5 py-1 text-emerald-700 shadow-sm transition-all duration-300">
+              <Activity className="h-3.5 w-3.5 text-emerald-500 animate-pulse" />
+              <span className="text-[11px] sm:text-xs font-bold font-sans">דיוק קליני: {scores.accuracy}</span>
             </div>
-            <div className="mt-1 h-1 w-24 rounded-full bg-slate-100 overflow-hidden">
+            <div className="mt-1 h-1 w-20 sm:w-24 rounded-full bg-slate-100 overflow-hidden">
               <div 
                 className="h-full bg-emerald-500 transition-all duration-500 ease-out" 
                 style={{ width: `${Math.max(0, Math.min(100, scores.accuracy))}%` }}
@@ -105,12 +105,12 @@ export const Navbar: React.FC<NavbarProps> = ({ currentPhase, scores }) => {
           </div>
 
           {/* Therapeutic Alliance */}
-          <div className="flex flex-col items-start">
-            <div className="flex items-center space-x-1.5 space-x-reverse rounded-full border border-sky-100 bg-sky-50/50 px-3 py-1 text-sky-700 shadow-sm transition-all duration-300">
-              <Users className="h-4 w-4 text-sky-500" />
-              <span className="text-xs font-bold font-sans">ברית טיפולית: {scores.alliance}</span>
+          <div className="flex flex-col items-start shrink-0">
+            <div className="flex items-center space-x-1.5 space-x-reverse rounded-full border border-sky-100 bg-sky-50/50 px-2.5 py-1 text-sky-700 shadow-sm transition-all duration-300">
+              <Users className="h-3.5 w-3.5 text-sky-500" />
+              <span className="text-[11px] sm:text-xs font-bold font-sans">ברית טיפולית: {scores.alliance}</span>
             </div>
-            <div className="mt-1 h-1 w-24 rounded-full bg-slate-100 overflow-hidden">
+            <div className="mt-1 h-1 w-20 sm:w-24 rounded-full bg-slate-100 overflow-hidden">
               <div 
                 className="h-full bg-sky-500 transition-all duration-500 ease-out" 
                 style={{ width: `${Math.max(0, Math.min(100, scores.alliance))}%` }}
@@ -119,12 +119,12 @@ export const Navbar: React.FC<NavbarProps> = ({ currentPhase, scores }) => {
           </div>
 
           {/* Patient Safety */}
-          <div className="flex flex-col items-start">
-            <div className="flex items-center space-x-1.5 space-x-reverse rounded-full border border-rose-100 bg-rose-50/50 px-3 py-1 text-rose-700 shadow-sm transition-all duration-300">
-              <ShieldAlert className="h-4 w-4 text-rose-500" />
-              <span className="text-xs font-bold font-sans">בטיחות המטופל: {scores.safety}</span>
+          <div className="flex flex-col items-start shrink-0">
+            <div className="flex items-center space-x-1.5 space-x-reverse rounded-full border border-rose-100 bg-rose-50/50 px-2.5 py-1 text-rose-700 shadow-sm transition-all duration-300">
+              <ShieldAlert className="h-3.5 w-3.5 text-rose-500" />
+              <span className="text-[11px] sm:text-xs font-bold font-sans">בטיחות המטופל: {scores.safety}</span>
             </div>
-            <div className="mt-1 h-1 w-24 rounded-full bg-slate-100 overflow-hidden">
+            <div className="mt-1 h-1 w-20 sm:w-24 rounded-full bg-slate-100 overflow-hidden">
               <div 
                 className="h-full bg-rose-500 transition-all duration-500 ease-out" 
                 style={{ width: `${Math.max(0, Math.min(100, scores.safety))}%` }}

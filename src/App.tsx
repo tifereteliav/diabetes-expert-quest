@@ -103,7 +103,7 @@ function App() {
                 <Sparkles className="h-3 w-3" />
                 <span>סימולציה ברמת מומחה</span>
               </span>
-              <h2 className="text-3xl font-extrabold tracking-tight text-slate-900 mt-2 font-sans">
+              <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900 mt-2 font-sans">
                 תיק מטופל לסימולציה קלינית
               </h2>
               <p className="text-slate-500 mt-1">
@@ -126,7 +126,7 @@ function App() {
             <div className="lg:col-span-2 space-y-8">
               
               {/* Profile Card */}
-              <div className="bg-slate-50/50 rounded-2xl border border-slate-100 p-6 flex flex-col sm:flex-row gap-6 items-start sm:items-center">
+              <div className="bg-slate-50/50 rounded-2xl border border-slate-100 p-4 sm:p-6 flex flex-col sm:flex-row gap-4 sm:gap-6 items-center text-center sm:text-right">
                 <div className="h-20 w-20 rounded-full bg-slate-900 flex items-center justify-center text-white shrink-0 shadow-lg">
                   <User className="h-10 w-10 text-sky-400" />
                 </div>
@@ -141,7 +141,7 @@ function App() {
                     עיסוק: <span className="text-slate-700 font-semibold">{patientCase1.demographics.occupation}</span>
                   </p>
                 </div>
-                <div className="sm:mr-auto sm:ml-0 grid grid-cols-2 gap-x-6 gap-y-2 text-xs font-medium border-t sm:border-t-0 sm:border-r border-slate-200/80 pt-4 sm:pt-0 sm:pr-6 shrink-0 text-right">
+                <div className="w-full sm:w-auto sm:mr-auto sm:ml-0 grid grid-cols-2 gap-x-6 gap-y-2 text-xs font-medium border-t sm:border-t-0 sm:border-r border-slate-200/80 pt-4 sm:pt-0 sm:pr-6 shrink-0 text-right">
                   <div className="text-slate-400">BMI: <span className="text-slate-800 font-bold">{patientCase1.demographics.bmi}</span></div>
                   <div className="text-slate-400">גובה: <span className="text-slate-800 font-bold">{patientCase1.demographics.height} ס״מ</span></div>
                   <div className="text-slate-400">משקל: <span className="text-slate-800 font-bold">{patientCase1.demographics.weight} ק״ג</span></div>
@@ -153,7 +153,7 @@ function App() {
               <div>
                 <div className="flex items-center space-x-2 space-x-reverse mb-4">
                   <FileText className="h-5 w-5 text-slate-600" />
-                  <h4 className="text-lg font-bold text-slate-900">תוצאות מעבדה מרכזיות</h4>
+                  <h4 className="text-base sm:text-lg font-bold text-slate-900">תוצאות מעבדה מרכזיות</h4>
                 </div>
                 <div className="overflow-x-auto rounded-2xl border border-slate-100 bg-white">
                   <table className="w-full text-right text-sm border-collapse">
@@ -198,7 +198,7 @@ function App() {
             </div>
 
             {/* Column 3: History & Presentation */}
-            <div className="bg-slate-50/50 rounded-3xl border border-slate-100/80 p-6 space-y-6">
+            <div className="bg-slate-50/50 rounded-3xl border border-slate-100/80 p-4 sm:p-6 space-y-6">
               <div>
                 <h4 className="text-md font-bold text-slate-950 uppercase tracking-wider text-xs">תמונת המטופל</h4>
                 <p className="text-sm font-medium text-slate-600 mt-2 leading-relaxed italic bg-white p-4 rounded-2xl border border-slate-100 shadow-sm text-right">
@@ -238,7 +238,7 @@ function App() {
                 <Users className="h-3 w-3 text-sky-500" />
                 <span>שלב האנמנזה</span>
               </span>
-              <h2 className="text-3xl font-extrabold tracking-tight text-slate-900 mt-2 font-sans">
+              <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900 mt-2 font-sans">
                 התייעצות עם המטופל
               </h2>
             </div>
@@ -268,7 +268,7 @@ function App() {
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 text-right">
             
             {/* Right/Main: Chat Window */}
-            <div className="lg:col-span-2 flex flex-col space-y-6 bg-slate-50/50 p-6 rounded-3xl border border-slate-100/80">
+            <div className="lg:col-span-2 flex flex-col space-y-6 bg-slate-50/50 p-4 sm:p-6 rounded-3xl border border-slate-100/80">
               {state.currentDialogueId === 'game_over_node' ? (
                 <div className="bg-red-50/50 border border-red-100 rounded-3xl p-8 shadow-2xl flex flex-col justify-center items-center text-center space-y-6 transition-all duration-300">
                   <div className="h-16 w-16 bg-red-100 text-red-600 rounded-full flex items-center justify-center animate-pulse shadow-md">
@@ -360,7 +360,7 @@ function App() {
             </div>
 
             {/* Left/Sidebar: Anamnesis Structured Questions */}
-            <div className="bg-white rounded-3xl border border-slate-100/80 p-6 space-y-6 flex flex-col">
+            <div className="bg-white rounded-3xl border border-slate-100/80 p-4 sm:p-6 space-y-6 flex flex-col">
               <div>
                 <h3 className="text-sm font-bold text-slate-950 uppercase tracking-wider text-xs">
                   פאנל שאלות אנמנזה
@@ -431,21 +431,21 @@ function App() {
                 <Activity className="h-3 w-3 text-indigo-500" />
                 <span>בדיקה גופנית ואבחון מעבדתי</span>
               </span>
-              <h2 className="text-3xl font-extrabold tracking-tight text-slate-900 mt-2 font-sans">
+              <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900 mt-2 font-sans">
                 בדיקה גופנית ובדיקות מעבדה מורחבות
               </h2>
             </div>
-            <div className="flex space-x-2 space-x-reverse mt-4 sm:mt-0">
-              <button onClick={() => setPhase('anamnesis')} className="premium-btn-secondary py-2 text-xs">
+            <div className="flex flex-wrap gap-2 space-x-reverse mt-4 sm:mt-0">
+              <button onClick={() => setPhase('anamnesis')} className="premium-btn-secondary py-2 text-xs w-full sm:w-auto">
                 חזרה להתייעצות
               </button>
-              <button onClick={() => setPhase('treatment')} className="premium-btn-primary py-2 text-xs">
+              <button onClick={() => setPhase('treatment')} className="premium-btn-primary py-2 text-xs w-full sm:w-auto">
                 שלב הטיפול
               </button>
             </div>
           </div>
 
-          <div className="p-8 border border-slate-100 bg-slate-50/40 rounded-3xl text-center space-y-4">
+          <div className="p-4 sm:p-8 border border-slate-100 bg-slate-50/40 rounded-3xl text-center space-y-4">
             <Thermometer className="h-12 w-12 text-slate-400 mx-auto animate-bounce" />
             <h3 className="text-xl font-bold text-slate-800">סביבת עבודה אבחנתית</h3>
             <p className="text-sm text-slate-500 max-w-md mx-auto">
@@ -464,21 +464,21 @@ function App() {
                 <Heart className="h-3 w-3 text-emerald-500" />
                 <span>טיפול תרופתי ושינוי אורח חיים</span>
               </span>
-              <h2 className="text-3xl font-extrabold tracking-tight text-slate-900 mt-2 font-sans">
+              <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900 mt-2 font-sans">
                 אופטימיזציה טיפולית
               </h2>
             </div>
-            <div className="flex space-x-2 space-x-reverse mt-4 sm:mt-0">
-              <button onClick={() => setPhase('physical_labs')} className="premium-btn-secondary py-2 text-xs">
+            <div className="flex flex-wrap gap-2 space-x-reverse mt-4 sm:mt-0">
+              <button onClick={() => setPhase('physical_labs')} className="premium-btn-secondary py-2 text-xs w-full sm:w-auto">
                 חזרה למעבדה
               </button>
-              <button onClick={() => setPhase('counselling')} className="premium-btn-primary py-2 text-xs">
+              <button onClick={() => setPhase('counselling')} className="premium-btn-primary py-2 text-xs w-full sm:w-auto">
                 שלב הייעוץ
               </button>
             </div>
           </div>
 
-          <div className="p-8 border border-slate-100 bg-slate-50/40 rounded-3xl text-center space-y-4">
+          <div className="p-4 sm:p-8 border border-slate-100 bg-slate-50/40 rounded-3xl text-center space-y-4">
             <Scale className="h-12 w-12 text-slate-400 mx-auto" />
             <h3 className="text-xl font-bold text-slate-800">סביבת עבודה לרשימת מרשמים והתאמות מינון</h3>
             <p className="text-sm text-slate-500 max-w-md mx-auto">
@@ -497,21 +497,21 @@ function App() {
                 <Users className="h-3 w-3 text-violet-500" />
                 <span>הדרכת מטופל ותמיכה</span>
               </span>
-              <h2 className="text-3xl font-extrabold tracking-tight text-slate-900 mt-2 font-sans">
+              <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900 mt-2 font-sans">
                 ראיון מוטיבציוני ושמירה על הרגליים
               </h2>
             </div>
-            <div className="flex space-x-2 space-x-reverse mt-4 sm:mt-0">
-              <button onClick={() => setPhase('treatment')} className="premium-btn-secondary py-2 text-xs">
+            <div className="flex flex-wrap gap-2 space-x-reverse mt-4 sm:mt-0">
+              <button onClick={() => setPhase('treatment')} className="premium-btn-secondary py-2 text-xs w-full sm:w-auto">
                 חזרה לטיפול
               </button>
-              <button onClick={() => setPhase('feedback')} className="premium-btn-primary py-2 text-xs">
+              <button onClick={() => setPhase('feedback')} className="premium-btn-primary py-2 text-xs w-full sm:w-auto">
                 הערכה סופית
               </button>
             </div>
           </div>
 
-          <div className="p-8 border border-slate-100 bg-slate-50/40 rounded-3xl text-center space-y-4">
+          <div className="p-4 sm:p-8 border border-slate-100 bg-slate-50/40 rounded-3xl text-center space-y-4">
             <HelpCircle className="h-12 w-12 text-slate-400 mx-auto" />
             <h3 className="text-xl font-bold text-slate-800">סביבת עבודה לייעוץ והדרכה</h3>
             <p className="text-sm text-slate-500 max-w-md mx-auto">

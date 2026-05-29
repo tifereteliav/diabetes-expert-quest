@@ -23,10 +23,10 @@ export const SimulatorLayout: React.FC<SimulatorLayoutProps> = ({
       <Navbar currentPhase={currentPhase} scores={scores} />
 
       {/* Main Spacious Container */}
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 py-8 sm:px-6 lg:px-8 flex flex-col justify-center">
+      <main className="flex-1 max-w-7xl w-full mx-auto px-2 py-4 sm:px-6 lg:px-8 flex flex-col justify-center">
         
         {/* Floating Content Card with Premium Design Tokens */}
-        <div className="w-full bg-white/80 backdrop-blur-sm rounded-4xl border border-slate-200/60 shadow-premium p-6 sm:p-10 transition-all duration-500 ease-in-out hover:border-slate-300/60">
+        <div className="w-full bg-white/80 backdrop-blur-sm rounded-2xl sm:rounded-4xl border border-slate-200/60 shadow-premium p-4 sm:p-10 transition-all duration-500 ease-in-out hover:border-slate-300/60">
           
           {/* Internal Layout Frame */}
           <div className="w-full h-full min-h-[500px] flex flex-col justify-between">
