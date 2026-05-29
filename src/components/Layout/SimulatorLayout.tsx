@@ -3,7 +3,7 @@ import { Navbar } from './Navbar';
 
 interface SimulatorLayoutProps {
   children: React.ReactNode;
-  currentPhase: 'welcome' | 'anamnesis' | 'physical_labs' | 'treatment' | 'counselling' | 'feedback';
+  currentPhase: 'welcome' | 'anamnesis' | 'dialogue' | 'physical_labs' | 'treatment' | 'counselling' | 'feedback';
   scores: {
     accuracy: number;
     alliance: number;

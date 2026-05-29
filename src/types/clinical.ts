@@ -82,7 +82,7 @@ export interface PatientCase {
 }
 
 export interface SimulationState {
-  currentPhase: 'welcome' | 'anamnesis' | 'physical_labs' | 'treatment' | 'counselling' | 'feedback';
+  currentPhase: 'welcome' | 'anamnesis' | 'dialogue' | 'physical_labs' | 'treatment' | 'counselling' | 'feedback';
   scores: {
     accuracy: number;
     alliance: number;
@@ -92,4 +92,9 @@ export interface SimulationState {
   dialogueHistory: { nodeId: string; choiceId?: string }[];
   currentDialogueId: string;
   selectedTreatments: string[];
+  scoresAfterAnamnesis?: {
+    accuracy: number;
+    alliance: number;
+    safety: number;
+  };
 }

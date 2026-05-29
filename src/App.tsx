@@ -88,9 +88,21 @@ function App() {
   const resetDialogue = () => {
     setState(prev => ({
       ...prev,
+      currentPhase: 'anamnesis',
       currentDialogueId: patientCase1.initialDialogueId,
       scores: { accuracy: 100, alliance: 100, safety: 100 },
       askedQuestions: [],
+      dialogueHistory: [],
+      scoresAfterAnamnesis: undefined,
+    }));
+  };
+
+  // Reset only the dialogue phase (preserving Anamnesis)
+  const resetDialogueOnly = () => {
+    setState(prev => ({
+      ...prev,
+      currentDialogueId: patientCase1.initialDialogueId,
+      scores: prev.scoresAfterAnamnesis ? { ...prev.scoresAfterAnamnesis } : { accuracy: 100, alliance: 100, safety: 100 },
       dialogueHistory: [],
     }));
   };
@@ -337,17 +349,149 @@ function App() {
         </div>
       )}
 
-      {/* 2. Anamnesis / Dialogue Phase (Hebrew) */}
+      {/* 2A. Pure Anamnesis Phase (Phase 1) */}
       {state.currentPhase === 'anamnesis' && (
-        <div className="space-y-8 animate-all duration-300">
-          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between border-b border-slate-100 pb-6 text-right">
+        <div className="space-y-8 animate-all duration-500 text-right">
+          {/* Header */}
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between border-b border-slate-100 pb-6">
             <div>
               <span className="inline-flex items-center space-x-1.5 space-x-reverse rounded-full bg-sky-50 px-3 py-1 text-xs font-semibold text-sky-700">
                 <Users className="h-3 w-3 text-sky-500" />
-                <span>שלב האנמנזה</span>
+                <span>שלב א': תשאול ואנמנזה</span>
               </span>
               <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900 mt-2 font-sans">
-                התייעצות עם המטופל
+                תשאול והערכה קלינית ראשונית
+              </h2>
+              <p className="text-slate-500 mt-1 text-sm">
+                עליך לשאול את ארתור חמש שאלות אנמנזה מרכזיות כדי לזהות את ההקשר המשפחתי, ההיענות לטיפול והתסמינים שלו.
+              </p>
+            </div>
+            <div className="flex items-center space-x-3 space-x-reverse mt-4 sm:mt-0">
+              <button 
+                onClick={resetDialogue}
+                className="premium-btn-secondary py-2 text-xs"
+              >
+                איפוס מפגש
+              </button>
+              <button
+                onClick={() => setPhase('welcome')}
+                className="premium-btn-secondary py-2 text-xs"
+              >
+                חזרה לפרופיל
+              </button>
+            </div>
+          </div>
+
+          {/* Progress Tracker Card */}
+          <div className="bg-white border border-slate-100/80 shadow-premium p-6 rounded-3xl space-y-4">
+            <div className="flex justify-between items-center text-sm font-bold text-slate-700">
+              <span>התקדמות תשאול האנמנזה</span>
+              <span className={allQuestionsAsked ? 'text-emerald-600' : 'text-sky-600'}>
+                {state.askedQuestions.length} מתוך {patientCase1.anamnesisOptions.length} שאלות נענו
+              </span>
+            </div>
+            
+            {/* Progress Bar */}
+            <div className="w-full bg-slate-100 rounded-full h-3.5 overflow-hidden">
+              <div 
+                className={`h-full transition-all duration-500 rounded-full ${
+                  allQuestionsAsked ? 'bg-emerald-500' : 'bg-sky-500'
+                }`}
+                style={{ width: `${(state.askedQuestions.length / patientCase1.anamnesisOptions.length) * 100}%` }}
+              />
+            </div>
+          </div>
+
+          {/* Centered Anamnesis Questions Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {patientCase1.anamnesisOptions.map((opt) => {
+              const isAsked = state.askedQuestions.includes(opt.id);
+
+              return (
+                <div 
+                  key={opt.id}
+                  className={`rounded-3xl border transition-all duration-350 p-6 flex flex-col justify-between text-right ${
+                    isAsked 
+                      ? 'border-emerald-100 bg-emerald-50/10 shadow-sm' 
+                      : 'border-slate-100 bg-white hover:border-slate-200 shadow-premium hover:shadow-xl hover:-translate-y-0.5'
+                  }`}
+                >
+                  <div className="space-y-4">
+                    <div className="flex justify-between items-start gap-4">
+                      <span className={`text-sm font-black leading-snug ${isAsked ? 'text-slate-800' : 'text-slate-900'}`}>
+                        {opt.question}
+                      </span>
+                      {isAsked && (
+                        <span className="text-emerald-500 bg-emerald-50 rounded-full p-1.5 shrink-0 shadow-sm">
+                          <CheckCircle2 className="h-5 w-5" />
+                        </span>
+                      )}
+                    </div>
+
+                    {isAsked ? (
+                      <div className="space-y-3 pt-3 border-t border-slate-100">
+                        {/* Arthur's Response */}
+                        <div className="bg-white/80 p-4 rounded-2xl border border-slate-100 shadow-sm leading-relaxed text-slate-800 text-xs font-semibold">
+                          <span className="text-[10px] font-black text-emerald-500 block mb-1">המטופל (ארתור)</span>
+                          "{opt.patientResponse}"
+                        </div>
+                        {/* Clinical Rationale */}
+                        <div className="bg-sky-50/40 p-4 rounded-2xl border border-sky-100/30 leading-relaxed text-sky-900 text-[11px] font-bold">
+                          <span className="text-[10px] font-black text-sky-500 block mb-1">רציונל קליני</span>
+                          {opt.clinicalRationale}
+                        </div>
+                      </div>
+                    ) : (
+                      <p className="text-xs text-slate-400 font-medium">
+                        לחץ על הכפתור כדי לשאול את המטופל ולקבל מידע אנמנסטי חיוני.
+                      </p>
+                    )}
+                  </div>
+
+                  {!isAsked && (
+                    <button
+                      onClick={() => handleAskQuestion(opt.id, opt.impact)}
+                      className="mt-6 w-full bg-slate-900 text-white rounded-2xl py-3 text-sm font-bold hover:bg-slate-800 transition-all duration-300 shadow-md hover:shadow-lg active:scale-95"
+                    >
+                      שאל את ארתור
+                    </button>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+
+          {/* Premium Transition Action Button */}
+          {allQuestionsAsked && (
+            <div className="mt-12 flex justify-center animate-fade-in">
+              <button
+                onClick={() => setState(prev => ({
+                  ...prev,
+                  currentPhase: 'dialogue',
+                  scoresAfterAnamnesis: { ...prev.scores }
+                }))}
+                className="premium-btn-primary bg-emerald-600 text-white hover:bg-emerald-700 shadow-lg shadow-emerald-200/50 hover:shadow-2xl hover:-translate-y-1 active:translate-y-0 text-base font-black px-10 py-5 rounded-3xl flex items-center gap-3 transition-all duration-500 animate-float"
+              >
+                <span>המשך לשיחה הטיפולית</span>
+                <ArrowLeft className="h-5 w-5 animate-pulse" />
+              </button>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* 2B. Pure Dialogue Phase (Phase 2) */}
+      {state.currentPhase === 'dialogue' && (
+        <div className="space-y-8 animate-all duration-500 text-right">
+          {/* Header */}
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between border-b border-slate-100 pb-6">
+            <div>
+              <span className="inline-flex items-center space-x-1.5 space-x-reverse rounded-full bg-indigo-50 px-3 py-1 text-xs font-semibold text-indigo-700">
+                <Users className="h-3 w-3 text-indigo-500" />
+                <span>שלב ב': שיח טיפולי וברית</span>
+              </span>
+              <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900 mt-2 font-sans">
+                התייעצות ושיח טיפולי
               </h2>
             </div>
             <div className="flex items-center space-x-3 space-x-reverse mt-4 sm:mt-0">
@@ -373,10 +517,10 @@ function App() {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 text-right">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             
-            {/* Right/Main: Chat Window */}
-            <div className="lg:col-span-2 flex flex-col space-y-6 bg-slate-50/50 p-4 sm:p-6 rounded-3xl border border-slate-100/80">
+            {/* Right/Main: Dialogue Chat Area */}
+            <div className="lg:col-span-2 flex flex-col space-y-6 bg-slate-50/50 p-4 sm:p-6 rounded-3xl border border-slate-100/80 shadow-premium">
               {state.currentDialogueId === 'game_over_node' ? (
                 <div className="bg-red-50/50 border border-red-100 rounded-3xl p-8 shadow-2xl flex flex-col justify-center items-center text-center space-y-6 transition-all duration-300">
                   <div className="h-16 w-16 bg-red-100 text-red-600 rounded-full flex items-center justify-center animate-pulse shadow-md">
@@ -394,7 +538,7 @@ function App() {
                     "עזבי, אני ממהר, ניפגש בפעם אחרת. אין לי כוח לזה עכשיו."
                   </div>
                   <button
-                    onClick={resetDialogue}
+                    onClick={resetDialogueOnly}
                     className="premium-btn-primary bg-slate-900 hover:bg-slate-800 transition-all rounded-2xl shadow-lg px-8 py-3 text-sm font-bold flex items-center space-x-2 space-x-reverse"
                   >
                     <span>נסה שוב</span>
@@ -409,69 +553,83 @@ function App() {
                   {/* Message Display Area */}
                   <div className="space-y-4 max-h-[350px] overflow-y-auto pl-2 pr-1 flex-1">
                     
-                    {/* Initial Info Node */}
-                    <div className="bg-white/80 p-4 rounded-2xl border border-slate-100 text-xs text-slate-500 font-medium italic text-right">
-                      סימולציה קלינית החלה עבור ארתור פנדלטון. מטרתך לבנות ברית טיפולית ולברר היענות לטיפול תרופתי.
+                    {/* Dynamic Start Context Block always at the top of Chat Log */}
+                    <div className="bg-slate-900 text-white p-5 rounded-2xl border border-slate-950 shadow-md text-right text-xs leading-relaxed">
+                      <span className="text-[10px] font-black text-sky-400 block mb-1">סביבת המפגש (רקע)</span>
+                      {patientCase1.dialogueTree.start.text}
                     </div>
 
-                    {/* Growable Timeline of Anamnesis Questions asked */}
-                    {patientCase1.anamnesisOptions.map((opt) => {
-                      const isAsked = state.askedQuestions.includes(opt.id);
-                      if (!isAsked) return null;
+                    {/* dialogue history log */}
+                    {state.dialogueHistory.map((item, idx) => {
+                      const node = patientCase1.dialogueTree[item.nodeId];
+                      const choice = node.choices.find(c => c.id === item.choiceId);
+                      if (!choice) return null;
+                      
+                      const nextNode = patientCase1.dialogueTree[choice.nextId];
 
                       return (
-                        <div key={opt.id} className="space-y-3 transition-all duration-500 ease-in-out">
-                          {/* Practitioner's question bubble */}
+                        <div key={idx} className="space-y-3 transition-all duration-300">
+                          {/* Practitioner's choice bubble */}
                           <div className="bg-sky-50 border border-sky-100/80 text-sky-900 p-4 rounded-2xl text-sm font-semibold max-w-[85%] mr-auto ml-0 text-right shadow-sm">
-                            <span className="text-[10px] font-black text-sky-500 block mb-1">שאלה קלינית</span>
-                            {opt.question}
+                            <span className="text-[10px] font-black text-sky-500 block mb-1">את/ה (אחות מומחית)</span>
+                            {choice.text}
                           </div>
                           {/* Patient's response bubble */}
-                          <div className="bg-white border border-slate-100 text-slate-800 p-4 rounded-2xl text-sm font-medium max-w-[85%] ml-auto mr-0 text-right shadow-sm">
-                            <span className="text-[10px] font-black text-emerald-500 block mb-1">המטופל (ארתור)</span>
-                            "{opt.patientResponse}"
-                          </div>
+                          {nextNode && nextNode.id !== 'game_over_node' && nextNode.id !== 'explore_phase' && nextNode.id !== 'anamnesis_intro' && (
+                            <div className="bg-white border border-slate-100 text-slate-800 p-4 rounded-2xl text-sm font-medium max-w-[85%] ml-auto mr-0 text-right shadow-sm">
+                              <span className="text-[10px] font-black text-emerald-500 block mb-1">המטופל (ארתור)</span>
+                              "{nextNode.text}"
+                            </div>
+                          )}
                         </div>
                       );
                     })}
 
-                    {/* Current Dialogue Node message */}
-                    <div className={`p-5 rounded-2xl border font-medium ${
-                      activeDialogueNode.speaker === 'system' 
-                        ? 'bg-slate-900 text-slate-100 border-slate-950 shadow-md' 
-                        : 'bg-white text-slate-800 border-slate-100 shadow-sm'
-                    }`}>
-                      <div className="flex items-center justify-between mb-2">
-                        <span className="text-xs font-extrabold uppercase tracking-wider text-sky-400">
-                          {activeDialogueNode.speaker === 'system' ? 'סצנה קלינית' : 'המטופל (ארתור)'}
-                        </span>
+                    {/* Active Dialogue Node Message (Arthur's active response) */}
+                    {state.currentDialogueId !== 'start' && state.currentDialogueId !== 'explore_phase' && (
+                      <div className="p-5 rounded-2xl border font-medium bg-white text-slate-800 border-slate-100 shadow-sm animate-fade-in">
+                        <div className="flex items-center justify-between mb-2">
+                          <span className="text-xs font-extrabold uppercase tracking-wider text-sky-500">
+                            {activeDialogueNode.speaker === 'system' ? 'סצנה קלינית' : 'המטופל (ארתור)'}
+                          </span>
+                        </div>
+                        <p className="text-sm leading-relaxed whitespace-pre-line text-right">
+                          {activeDialogueNode.text}
+                        </p>
                       </div>
-                      <p className="text-sm leading-relaxed whitespace-pre-line text-right">
-                        {activeDialogueNode.text}
-                      </p>
-                    </div>
+                    )}
 
-                    {/* Patient response tips */}
+                    {/* Clinical tip if active */}
                     {activeDialogueNode.clinicalTip && (
-                      <div className="bg-amber-50 border border-amber-100 text-amber-800 p-4 rounded-xl text-xs font-semibold text-right">
+                      <div className="bg-amber-50 border border-amber-100 text-amber-800 p-4 rounded-xl text-xs font-semibold text-right animate-fade-in">
                         💡 {activeDialogueNode.clinicalTip}
                       </div>
                     )}
 
                   </div>
 
-                  {/* Choices / Actions Selector with Strict Gatekeeping */}
+                  {/* Dialogue Choices Panel */}
                   <div className="space-y-3 pt-4 border-t border-slate-200/50">
                     <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">
                       בחר פעולה מהשיח:
                     </h4>
-                    
-                    {!allQuestionsAsked ? (
-                      <div className="p-5 rounded-2xl bg-amber-50/50 border border-amber-100 text-amber-800 text-xs font-bold text-center leading-relaxed transition-all duration-300">
-                        ⚠️ יש להשלים את תשאול המטופל בפאנל שאלות האנמנזה כדי לפתוח את אפשרויות השיח הטיפולי.
-                        <div className="mt-2 text-[10px] text-slate-400 font-semibold uppercase tracking-wider">
-                          הושלם: {state.askedQuestions.length} מתוך {patientCase1.anamnesisOptions.length}
+
+                    {state.currentDialogueId === 'explore_phase' ? (
+                      <div className="bg-emerald-50/50 border border-emerald-100 rounded-3xl p-6 text-center space-y-4 animate-fade-in shadow-inner">
+                        <div className="h-12 w-12 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center mx-auto shadow-sm animate-bounce">
+                          <CheckCircle2 className="h-6 w-6" />
                         </div>
+                        <h3 className="text-lg font-black text-emerald-800">הברית הטיפולית בוססה בהצלחה!</h3>
+                        <p className="text-xs text-slate-600 max-w-md mx-auto leading-relaxed">
+                          השלמת בהצלחה את שלב השיח הטיפולי הראשוני. הצלחת לבסס אמפתיה ואמון מול ארתור, תוך שימור רציונלים מקצועיים. כעת נעבור לבדיקה גופנית מלאה והזמנת מדדי מעבדה.
+                        </p>
+                        <button
+                          onClick={() => setPhase('physical_labs')}
+                          className="premium-btn-primary bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold px-6 py-3 rounded-2xl flex items-center justify-center space-x-2 space-x-reverse mx-auto shadow-md"
+                        >
+                          <span>המשך לבדיקה גופנית ומעבדה</span>
+                          <ArrowLeft className="h-4 w-4" />
+                        </button>
                       </div>
                     ) : (
                       <div className="transition-all duration-500 ease-in-out">
@@ -490,7 +648,7 @@ function App() {
                           </div>
                         ) : (
                           <div className="p-4 rounded-2xl bg-slate-100/50 text-slate-500 text-xs font-medium text-center">
-                            המפגש הראשוני הושלם. אנא שאל שאלות מהלוח השמאלי.
+                            המפגש הראשוני הושלם. השתמש במדדי מעבדה למעלה להתקדמות.
                           </div>
                         )}
                       </div>
@@ -500,70 +658,33 @@ function App() {
               )}
             </div>
 
-            {/* Left/Sidebar: Anamnesis Structured Questions */}
-            <div className="bg-white rounded-3xl border border-slate-100/80 p-4 sm:p-6 space-y-6 flex flex-col">
+            {/* Left Sidebar: Read-only completed Anamnesis summary */}
+            <div className="bg-white rounded-3xl border border-slate-100/80 p-4 sm:p-6 space-y-6 flex flex-col shadow-premium">
               <div>
-                <h3 className="text-sm font-bold text-slate-950 uppercase tracking-wider text-xs">
-                  פאנל שאלות אנמנזה
+                <div className="flex items-center space-x-2 space-x-reverse text-emerald-600 bg-emerald-50 px-3 py-1.5 rounded-full w-max text-xs font-bold mb-2">
+                  <CheckCircle2 className="h-4 w-4" />
+                  <span>אומדן אנמנזה הושלם</span>
+                </div>
+                <h3 className="text-sm font-black text-slate-900 tracking-wider">
+                  היסטוריה קלינית של ארתור
                 </h3>
                 <p className="text-xs text-slate-400 mt-1 leading-snug">
-                  שאל את ארתור שאלות ממוקדות לגבי ההיסטוריה שלו. שים לב להשפעה הטיפולית.
+                  נתונים קליניים שנאספו במהלך תשאול האנמנזה. השתמש בהם לשיח הטיפולי.
                 </p>
               </div>
 
-              {/* List of questions or Collapsed Completed Card */}
-              {allQuestionsAsked ? (
-                <div className="bg-emerald-50/40 border border-emerald-100/80 rounded-2xl p-6 text-center space-y-3 transition-all duration-500 animate-float shadow-inner">
-                  <div className="h-12 w-12 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center mx-auto shadow-sm animate-bounce">
-                    <CheckCircle2 className="h-6 w-6" />
+              <div className="space-y-4 overflow-y-auto max-h-[380px] flex-1 pl-1">
+                {patientCase1.anamnesisOptions.map((opt) => (
+                  <div key={opt.id} className="p-4 rounded-2xl bg-slate-50 border border-slate-100/60 text-right space-y-2">
+                    <span className="text-xs font-black text-slate-900 block border-b border-slate-200 pb-1.5">
+                      {opt.question}
+                    </span>
+                    <p className="text-[11px] text-slate-600 font-semibold leading-relaxed italic bg-white p-3 rounded-xl border border-slate-50">
+                      "{opt.patientResponse}"
+                    </p>
                   </div>
-                  <h4 className="text-sm font-black text-emerald-800 leading-none">אומדן אנמנזה הושלם</h4>
-                  <p className="text-[11px] text-slate-500 leading-relaxed font-semibold">
-                    כל שאלות האנמנזה נשאלו בהצלחה ורמזים קליניים תועדו בתיק הרפואי. אפשרויות השיח הטיפולי פתוחות כעת.
-                  </p>
-                </div>
-              ) : (
-                <div className="space-y-3 overflow-y-auto max-h-[380px] flex-1 pl-1">
-                  {patientCase1.anamnesisOptions.map((opt) => {
-                    const isAsked = state.askedQuestions.includes(opt.id);
-
-                    return (
-                      <div 
-                        key={opt.id}
-                        className={`rounded-2xl border transition-all duration-300 text-right p-4 ${
-                          isAsked 
-                            ? 'border-slate-100 bg-slate-50/50 opacity-60 pointer-events-none' 
-                            : 'border-slate-100 hover:border-slate-200 bg-white shadow-sm hover:shadow'
-                        }`}
-                      >
-                        <div className="flex items-center justify-between gap-4">
-                          <span className={`text-xs font-bold leading-snug text-right ${isAsked ? 'text-slate-400 line-through' : 'text-slate-800'}`}>
-                            {opt.question}
-                          </span>
-                          {isAsked ? (
-                            <span className="text-emerald-500 bg-emerald-50 rounded-full p-1 shrink-0">
-                              <CheckCircle2 className="h-4 w-4" />
-                            </span>
-                          ) : (
-                            <button
-                              onClick={() => handleAskQuestion(opt.id, opt.impact)}
-                              className="bg-slate-900 text-white rounded-xl px-3 py-1.5 text-xs font-semibold hover:bg-slate-800 transition-colors shrink-0 shadow-sm"
-                            >
-                              שאל
-                            </button>
-                          )}
-                        </div>
-                        
-                        {isAsked && (
-                          <div className="mt-2 text-[9px] font-bold text-slate-400 bg-slate-100 px-2 py-1 rounded-md text-right truncate">
-                            רמז קליני תועד ביומן
-                          </div>
-                        )}
-                      </div>
-                    );
-                  })}
-                </div>
-              )}
+                ))}
+              </div>
             </div>
 
           </div>

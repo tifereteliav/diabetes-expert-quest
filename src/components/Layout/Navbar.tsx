@@ -2,7 +2,7 @@ import React from 'react';
 import { Activity, Users, ShieldAlert } from 'lucide-react';
 
 interface NavbarProps {
-  currentPhase: 'welcome' | 'anamnesis' | 'physical_labs' | 'treatment' | 'counselling' | 'feedback';
+  currentPhase: 'welcome' | 'anamnesis' | 'dialogue' | 'physical_labs' | 'treatment' | 'counselling' | 'feedback';
   scores: {
     accuracy: number;
     alliance: number;
@@ -21,6 +21,7 @@ export const Navbar: React.FC<NavbarProps> = ({ currentPhase, scores }) => {
   ];
 
   const getPhaseIndex = (phaseId: string) => {
+    if (phaseId === 'dialogue') return 1;
     return phases.findIndex((p) => p.id === phaseId);
   };
 
