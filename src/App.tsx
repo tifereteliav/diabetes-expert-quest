@@ -14,7 +14,8 @@ import {
   FileText,
   Thermometer,
   Heart,
-  Scale
+  Scale,
+  CheckCircle2
 } from 'lucide-react';
 
 function App() {
@@ -34,6 +35,8 @@ function App() {
 
   const activeDialogueNode = patientCase1.dialogueTree[state.currentDialogueId];
   const [isDataRead, setIsDataRead] = useState(false);
+
+  const allQuestionsAsked = state.askedQuestions.length === patientCase1.anamnesisOptions.length;
 
   // Handler for Phase change
   const setPhase = (phase: SimulationState['currentPhase']) => {
@@ -411,7 +414,28 @@ function App() {
                       סימולציה קלינית החלה עבור ארתור פנדלטון. מטרתך לבנות ברית טיפולית ולברר היענות לטיפול תרופתי.
                     </div>
 
-                    {/* Patient / System Message */}
+                    {/* Growable Timeline of Anamnesis Questions asked */}
+                    {patientCase1.anamnesisOptions.map((opt) => {
+                      const isAsked = state.askedQuestions.includes(opt.id);
+                      if (!isAsked) return null;
+
+                      return (
+                        <div key={opt.id} className="space-y-3 transition-all duration-500 ease-in-out">
+                          {/* Practitioner's question bubble */}
+                          <div className="bg-sky-50 border border-sky-100/80 text-sky-900 p-4 rounded-2xl text-sm font-semibold max-w-[85%] mr-auto ml-0 text-right shadow-sm">
+                            <span className="text-[10px] font-black text-sky-500 block mb-1">שאלה קלינית</span>
+                            {opt.question}
+                          </div>
+                          {/* Patient's response bubble */}
+                          <div className="bg-white border border-slate-100 text-slate-800 p-4 rounded-2xl text-sm font-medium max-w-[85%] ml-auto mr-0 text-right shadow-sm">
+                            <span className="text-[10px] font-black text-emerald-500 block mb-1">המטופל (ארתור)</span>
+                            "{opt.patientResponse}"
+                          </div>
+                        </div>
+                      );
+                    })}
+
+                    {/* Current Dialogue Node message */}
                     <div className={`p-5 rounded-2xl border font-medium ${
                       activeDialogueNode.speaker === 'system' 
                         ? 'bg-slate-900 text-slate-100 border-slate-950 shadow-md' 
@@ -436,27 +460,39 @@ function App() {
 
                   </div>
 
-                  {/* Choices / Actions Selector */}
+                  {/* Choices / Actions Selector with Strict Gatekeeping */}
                   <div className="space-y-3 pt-4 border-t border-slate-200/50">
                     <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">
                       בחר פעולה מהשיח:
                     </h4>
-                    {activeDialogueNode.choices.length > 0 ? (
-                      <div className="space-y-2">
-                        {activeDialogueNode.choices.map((choice) => (
-                          <button
-                            key={choice.id}
-                            onClick={() => handleDialogueChoice(choice.id, choice.nextId, choice.impact)}
-                            className="w-full text-right p-4 rounded-2xl bg-white border border-slate-100 text-slate-700 text-sm font-semibold hover:border-sky-500 hover:text-slate-950 transition-all duration-300 flex items-center justify-between shadow-sm hover:shadow group space-x-2 space-x-reverse"
-                          >
-                            <span className="max-w-[90%] leading-snug">{choice.text}</span>
-                            <ChevronLeft className="h-5 w-5 text-slate-400 group-hover:text-sky-500 group-hover:-translate-x-1 transition-all shrink-0" />
-                          </button>
-                        ))}
+                    
+                    {!allQuestionsAsked ? (
+                      <div className="p-5 rounded-2xl bg-amber-50/50 border border-amber-100 text-amber-800 text-xs font-bold text-center leading-relaxed transition-all duration-300">
+                        ⚠️ יש להשלים את תשאול המטופל בפאנל שאלות האנמנזה כדי לפתוח את אפשרויות השיח הטיפולי.
+                        <div className="mt-2 text-[10px] text-slate-400 font-semibold uppercase tracking-wider">
+                          הושלם: {state.askedQuestions.length} מתוך {patientCase1.anamnesisOptions.length}
+                        </div>
                       </div>
                     ) : (
-                      <div className="p-4 rounded-2xl bg-slate-100/50 text-slate-500 text-xs font-medium text-center">
-                        המפגש הראשוני הושלם. אנא שאל שאלות מהלוח השמאלי.
+                      <div className="transition-all duration-500 ease-in-out">
+                        {activeDialogueNode.choices.length > 0 ? (
+                          <div className="space-y-2">
+                            {activeDialogueNode.choices.map((choice) => (
+                              <button
+                                key={choice.id}
+                                onClick={() => handleDialogueChoice(choice.id, choice.nextId, choice.impact)}
+                                className="w-full text-right p-4 rounded-2xl bg-white border border-slate-100 text-slate-700 text-sm font-semibold hover:border-sky-500 hover:text-slate-950 transition-all duration-300 flex items-center justify-between shadow-sm hover:shadow group space-x-2 space-x-reverse"
+                              >
+                                <span className="max-w-[90%] leading-snug">{choice.text}</span>
+                                <ChevronLeft className="h-5 w-5 text-slate-400 group-hover:text-sky-500 group-hover:-translate-x-1 transition-all shrink-0" />
+                              </button>
+                            ))}
+                          </div>
+                        ) : (
+                          <div className="p-4 rounded-2xl bg-slate-100/50 text-slate-500 text-xs font-medium text-center">
+                            המפגש הראשוני הושלם. אנא שאל שאלות מהלוח השמאלי.
+                          </div>
+                        )}
                       </div>
                     )}
                   </div>
@@ -475,52 +511,59 @@ function App() {
                 </p>
               </div>
 
-              {/* List of questions */}
-              <div className="space-y-3 overflow-y-auto max-h-[380px] flex-1 pl-1">
-                {patientCase1.anamnesisOptions.map((opt) => {
-                  const isAsked = state.askedQuestions.includes(opt.id);
+              {/* List of questions or Collapsed Completed Card */}
+              {allQuestionsAsked ? (
+                <div className="bg-emerald-50/40 border border-emerald-100/80 rounded-2xl p-6 text-center space-y-3 transition-all duration-500 animate-float shadow-inner">
+                  <div className="h-12 w-12 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center mx-auto shadow-sm animate-bounce">
+                    <CheckCircle2 className="h-6 w-6" />
+                  </div>
+                  <h4 className="text-sm font-black text-emerald-800 leading-none">אומדן אנמנזה הושלם</h4>
+                  <p className="text-[11px] text-slate-500 leading-relaxed font-semibold">
+                    כל שאלות האנמנזה נשאלו בהצלחה ורמזים קליניים תועדו בתיק הרפואי. אפשרויות השיח הטיפולי פתוחות כעת.
+                  </p>
+                </div>
+              ) : (
+                <div className="space-y-3 overflow-y-auto max-h-[380px] flex-1 pl-1">
+                  {patientCase1.anamnesisOptions.map((opt) => {
+                    const isAsked = state.askedQuestions.includes(opt.id);
 
-                  return (
-                    <div 
-                      key={opt.id}
-                      className={`rounded-2xl border transition-all duration-300 text-right ${
-                        isAsked 
-                          ? 'border-slate-100 bg-slate-50/50 p-4' 
-                          : 'border-slate-100 hover:border-slate-200 bg-white p-4 shadow-sm hover:shadow'
-                      }`}
-                    >
-                      <div className="flex items-start justify-between gap-4">
-                        <span className="text-xs font-bold text-slate-800 leading-snug text-right">
-                          {opt.question}
-                        </span>
-                        {!isAsked && (
-                          <button
-                            onClick={() => handleAskQuestion(opt.id, opt.impact)}
-                            className="bg-slate-900 text-white rounded-xl px-3 py-1.5 text-xs font-semibold hover:bg-slate-800 transition-colors shrink-0"
-                          >
-                            שאל
-                          </button>
+                    return (
+                      <div 
+                        key={opt.id}
+                        className={`rounded-2xl border transition-all duration-300 text-right p-4 ${
+                          isAsked 
+                            ? 'border-slate-100 bg-slate-50/50 opacity-60 pointer-events-none' 
+                            : 'border-slate-100 hover:border-slate-200 bg-white shadow-sm hover:shadow'
+                        }`}
+                      >
+                        <div className="flex items-center justify-between gap-4">
+                          <span className={`text-xs font-bold leading-snug text-right ${isAsked ? 'text-slate-400 line-through' : 'text-slate-800'}`}>
+                            {opt.question}
+                          </span>
+                          {isAsked ? (
+                            <span className="text-emerald-500 bg-emerald-50 rounded-full p-1 shrink-0">
+                              <CheckCircle2 className="h-4 w-4" />
+                            </span>
+                          ) : (
+                            <button
+                              onClick={() => handleAskQuestion(opt.id, opt.impact)}
+                              className="bg-slate-900 text-white rounded-xl px-3 py-1.5 text-xs font-semibold hover:bg-slate-800 transition-colors shrink-0 shadow-sm"
+                            >
+                              שאל
+                            </button>
+                          )}
+                        </div>
+                        
+                        {isAsked && (
+                          <div className="mt-2 text-[9px] font-bold text-slate-400 bg-slate-100 px-2 py-1 rounded-md text-right truncate">
+                            רמז קליני תועד ביומן
+                          </div>
                         )}
                       </div>
-                      
-                      {isAsked && (
-                        <div className="mt-3 space-y-2 border-t border-slate-100 pt-3">
-                          <p className="text-xs text-slate-600 font-medium italic bg-white p-3 rounded-xl border border-slate-100/60 leading-relaxed text-right">
-                            " {opt.patientResponse} "
-                          </p>
-                          <div className="flex items-center justify-between text-[10px] font-bold text-emerald-600 bg-emerald-50 px-2 py-1 rounded-md space-x-2 space-x-reverse text-right">
-                            <span>הסבר קליני נרשם ביומן</span>
-                            <span className="text-slate-400 font-medium text-[9px] max-w-[65%] text-left truncate">
-                              {opt.clinicalRationale}
-                            </span>
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
-
+                    );
+                  })}
+                </div>
+              )}
             </div>
 
           </div>
