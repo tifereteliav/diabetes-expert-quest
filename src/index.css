@@ -1,0 +1,74 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html, body {
+    @apply bg-[#f8fafc] text-slate-800 antialiased;
+    font-family: 'Inter', 'Outfit', system-ui, sans-serif;
+  }
+  
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Outfit', 'Inter', system-ui, sans-serif;
+  }
+}
+
+@layer components {
+  .premium-card {
+    @apply bg-white border border-slate-100/80 rounded-3xl shadow-premium transition-all duration-300 ease-in-out hover:shadow-premium-hover;
+  }
+  
+  .glass-card {
+    @apply bg-white/70 backdrop-blur-md border border-white/20 rounded-3xl shadow-premium transition-all duration-300 ease-in-out;
+  }
+
+  .premium-input {
+    @apply w-full px-4 py-3 rounded-2xl border border-slate-200/80 bg-slate-50/50 text-slate-800 transition-all duration-300 placeholder:text-slate-400 focus:outline-none focus:border-sky-500 focus:bg-white focus:ring-4 focus:ring-sky-500/10;
+  }
+
+  .premium-btn-primary {
+    @apply px-6 py-3 rounded-2xl bg-slate-900 text-white font-medium shadow-lg shadow-slate-950/10 transition-all duration-300 hover:bg-slate-800 hover:-translate-y-0.5 active:translate-y-0;
+  }
+
+  .premium-btn-secondary {
+    @apply px-6 py-3 rounded-2xl bg-white border border-slate-200 text-slate-700 font-medium transition-all duration-300 hover:bg-slate-50 hover:border-slate-300 hover:-translate-y-0.5 active:translate-y-0;
+  }
+}
+
+/* Custom Scrollbar for premium feel */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  @apply bg-slate-50;
+}
+
+::-webkit-scrollbar-thumb {
+  @apply bg-slate-200 rounded-full hover:bg-slate-300 transition-colors;
+}
+
+/* Micro-animations */
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-6px); }
+}
+
+.animate-float {
+  animation: float 6s ease-in-out infinite;
+}
+
+/* Hide default Vite page wrapper styling if any */
+#root {
+  width: 100% !important;
+  max-width: 100% !important;
+  margin: 0 !important;
+  text-align: left !important;
+  border-inline: none !important;
+  min-height: 100vh !important;
+  display: block !important;
+  box-sizing: border-box !important;
+}
