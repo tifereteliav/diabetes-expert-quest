@@ -97,4 +97,5 @@ export interface SimulationState {
     alliance: number;
     safety: number;
   };
+  maxUnlockedStep?: number;
 }

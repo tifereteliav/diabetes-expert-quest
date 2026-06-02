@@ -9,18 +9,27 @@ interface SimulatorLayoutProps {
     alliance: number;
     safety: number;
   };
+  onStepClick?: (stepIdx: number) => void;
+  maxUnlockedStep?: number;
 }
 
 export const SimulatorLayout: React.FC<SimulatorLayoutProps> = ({
   children,
   currentPhase,
   scores,
+  onStepClick,
+  maxUnlockedStep,
 }) => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#f8fafc] via-[#f1f5f9] to-[#f8fafc] font-sans antialiased text-slate-800 flex flex-col transition-colors duration-300">
       
       {/* Top Navbar */}
-      <Navbar currentPhase={currentPhase} scores={scores} />
+      <Navbar 
+        currentPhase={currentPhase} 
+        scores={scores} 
+        onStepClick={onStepClick} 
+        maxUnlockedStep={maxUnlockedStep} 
+      />
 
       {/* Main Spacious Container */}
       <main className="flex-1 max-w-7xl w-full mx-auto px-2 py-4 sm:px-6 lg:px-8 flex flex-col justify-center">

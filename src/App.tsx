@@ -14,7 +14,6 @@ import {
   FileText,
   Thermometer,
   Heart,
-  Scale,
   CheckCircle2,
   Volume2,
   Info
@@ -33,6 +32,7 @@ function App() {
     dialogueHistory: [],
     currentDialogueId: patientCase1.initialDialogueId,
     selectedTreatments: [],
+    maxUnlockedStep: 0,
   });
 
   const activeDialogueNode = patientCase1.dialogueTree[state.currentDialogueId];
@@ -53,11 +53,57 @@ function App() {
   const [quizError, setQuizError] = useState<string | null>(null);
   const [quizSuccess, setQuizSuccess] = useState(false);
 
+  const [activeFindingText, setActiveFindingText] = useState<string | null>(null);
+  const [activeFindingTitle, setActiveFindingTitle] = useState<string | null>(null);
+  const [tipText, setTipText] = useState<string | null>("בחר כלי אבחון והקש על נקודות האומדן להצגת ממצאים");
+
+  // Phase 4: Treatment Strategy states
+  const [treatmentPart, setTreatmentPart] = useState<'part1' | 'part2'>('part1');
+  const [part1Checked, setPart1Checked] = useState<string[]>([]);
+  const [part1Feedback, setPart1Feedback] = useState<string | null>(null);
+  const [part1FeedbackType, setPart1FeedbackType] = useState<'error' | 'info' | null>(null);
+  const [part1Submitted, setPart1Submitted] = useState(false);
+  const [part1IsValid, setPart1IsValid] = useState(false);
+  const [part2Choice, setPart2Choice] = useState<'sglt2' | 'glp1' | 'hybrid' | null>(null);
+  const [part2Checklist, setPart2Checklist] = useState<Record<string, boolean>>({});
+
   const allQuestionsAsked = state.askedQuestions.length === patientCase1.anamnesisOptions.length;
 
   // Handler for Phase change
   const setPhase = (phase: SimulationState['currentPhase']) => {
-    setState(prev => ({ ...prev, currentPhase: phase }));
+    setState(prev => {
+      const stepIndices: Record<string, number> = {
+        welcome: 0,
+        anamnesis: 1,
+        dialogue: 1,
+        physical_labs: 2,
+        treatment: 3,
+        counselling: 4,
+        feedback: 5
+      };
+      const newStep = stepIndices[phase] || 0;
+      const currentMax = prev.maxUnlockedStep || 0;
+      return {
+        ...prev,
+        currentPhase: phase,
+        maxUnlockedStep: Math.max(currentMax, newStep)
+      };
+    });
+  };
+
+  const handleStepClick = (stepIdx: number) => {
+    const phasesByStep: Record<number, SimulationState['currentPhase']> = {
+      0: 'welcome',
+      1: allQuestionsAsked ? 'dialogue' : 'anamnesis',
+      2: 'physical_labs',
+      3: 'treatment',
+      4: 'counselling',
+      5: 'feedback'
+    };
+    const targetPhase = phasesByStep[stepIdx];
+    if (targetPhase) {
+      setPhase(targetPhase);
+    }
   };
 
   // Handler for Dialogue choice selection
@@ -111,7 +157,17 @@ function App() {
       askedQuestions: [],
       dialogueHistory: [],
       scoresAfterAnamnesis: undefined,
+      maxUnlockedStep: 1,
     }));
+    // Reset Phase 4 local states too!
+    setTreatmentPart('part1');
+    setPart1Checked([]);
+    setPart1Feedback(null);
+    setPart1FeedbackType(null);
+    setPart1Submitted(false);
+    setPart1IsValid(false);
+    setPart2Choice(null);
+    setPart2Checklist({});
   };
 
   // Reset only the dialogue phase (preserving Anamnesis)
@@ -147,6 +203,58 @@ function App() {
 
     setCompletedTools(prev => ({ ...prev, [tool]: true }));
     setSelectedFootTool(tool);
+    setActiveFindingText(null);
+    setActiveFindingTitle(null);
+    if (tool === 'pulses') {
+      setTipText("לחץ על נקודת Dorsalis Pedis או Posterior Tibial כדי למשש דפקים");
+    } else if (tool === 'doppler') {
+      setTipText("לחץ על נקודת Dorsalis Pedis או Posterior Tibial כדי להאזין לזרימת הדם בדופלר");
+    } else if (tool === 'monofilament') {
+      setTipText("לחץ על נקודת מונופילמנט כדי לבדוק תחושה");
+    } else if (tool === 'visual') {
+      setTipText("לחץ על נקודת אומדן ויזואלי בעקב כדי לבחון יבלות ועור");
+    }
+  };
+
+  const handleHotspotClick = (hotspotType: 'dp' | 'tp' | 'mono' | 'visual') => {
+    if (!selectedFootTool) {
+      setTipText("יש לבחור כלי בדיקה מסרגל הכלים תחילה!");
+      return;
+    }
+
+    if (selectedFootTool === 'pulses') {
+      if (hotspotType === 'dp' || hotspotType === 'tp') {
+        setActiveFindingTitle("מישוש דפקים פריפריים");
+        setActiveFindingText("נמוש דפק תקין ומלא. דפקים פריפריים תקינים ומלאים, זרימת דם תקינה ושמורה בשמיעת דופלר.");
+        setTipText("נמוש דפק תקין ומלא בשני עורקי כפות הרגליים.");
+      } else {
+        setTipText("כלי זה מיועד למישוש דפקים (Dorsalis Pedis / Posterior Tibial) בלבד.");
+      }
+    } else if (selectedFootTool === 'doppler') {
+      if (hotspotType === 'dp' || hotspotType === 'tp') {
+        setActiveFindingTitle("בדיקת דופלר (Doppler)");
+        setActiveFindingText("בשמיעת דופלר נשמע גל תקין וזרימת דם שמורה. דפקים פריפריים תקינים ומלאים, זרימת דם תקינה ושמורה בשמיעת דופלר.");
+        setTipText("נמדד גל תקין בדופלר אקוסטי בשתי כפות הרגליים.");
+      } else {
+        setTipText("כלי זה מיועד לבדיקת דופלר (Dorsalis Pedis / Posterior Tibial) בלבד.");
+      }
+    } else if (selectedFootTool === 'monofilament') {
+      if (hotspotType === 'mono') {
+        setActiveFindingTitle("בדיקת מונופילמנט 10 גרם");
+        setActiveFindingText("אובדן תחושה מוחלט ברוב נקודות הבדיקה במונופילמנט 10 גרם. המטופל אינו מרגיש את סיב המונופילמנט בכריות כף הרגל ובבהונות (נוירופתיה היקפית מובהקת).");
+        setTipText("אובדן תחושה מוחלט ברוב נקודות הבדיקה במונופילמנט 10 גרם. המטופל אינו מרגיש את סיב המונופילמנט בכריות כף הרגל ובבהונות (נוירופתיה היקפית מובהקת).");
+      } else {
+        setTipText("כלי זה מיועד לבדיקת מונופילמנט בנקודות התחושה בלבד.");
+      }
+    } else if (selectedFootTool === 'visual') {
+      if (hotspotType === 'visual') {
+        setActiveFindingTitle("אומדן ויזואלי ומבני");
+        setActiveFindingText("עור יבש קל ופטרת בציפורניים (Onychomycosis). ללא עיוות גרמי של כף הרגל וללא כיב פעיל בהווה.");
+        setTipText("עור יבש קל ופטרת בציפורניים (Onychomycosis). ללא עיוות גרמי של כף הרגל וללא כיב פעיל בהווה.");
+      } else {
+        setTipText("לחץ על נקודת אומדן ויזואלי בעקב כדי לבצע את הבדיקה הראייתית.");
+      }
+    }
   };
 
   // Handler for Phase 3 Diagnostic Quiz submission
@@ -178,7 +286,12 @@ function App() {
   };
 
   return (
-    <SimulatorLayout currentPhase={state.currentPhase} scores={state.scores}>
+    <SimulatorLayout 
+      currentPhase={state.currentPhase} 
+      scores={state.scores}
+      onStepClick={handleStepClick}
+      maxUnlockedStep={state.maxUnlockedStep || 0}
+    >
       
       {/* 1. Welcome Phase (Hebrew) */}
       {state.currentPhase === 'welcome' && (
@@ -295,8 +408,13 @@ function App() {
                           <div className="flex justify-between items-start">
                             <span className="text-sm font-bold text-slate-900">{lab.name}</span>
                             <div className="text-right">
-                              <span className={`text-sm font-black px-2 py-0.5 rounded-lg ${lab.status === 'high' ? 'text-rose-600 bg-rose-50' : lab.status === 'low' ? 'text-amber-600 bg-amber-50' : 'text-emerald-600 bg-emerald-50'}`}>{lab.value} {lab.unit}</span>
-                              <p className="text-[10px] text-slate-400 font-semibold mt-0.5">טווח: {lab.normalRange}</p>
+                              <span className={`text-sm font-black px-2 py-0.5 rounded-lg ${lab.status === 'high' ? 'text-rose-600 bg-rose-50' : lab.status === 'low' ? 'text-amber-600 bg-amber-50' : 'text-emerald-600 bg-emerald-50'}`}>
+                                {lab.value}
+                                {lab.name !== 'eGFR (CKD-EPI)' && ` ${lab.unit}`}
+                              </span>
+                              <p className="text-[10px] text-slate-400 font-semibold mt-0.5">
+                                {lab.name === 'eGFR (CKD-EPI)' && `${lab.unit} • `}טווח: {lab.normalRange}
+                              </p>
                             </div>
                           </div>
                           <p className="text-xs text-slate-500 font-medium leading-relaxed mt-1.5">{lab.interpretation}</p>
@@ -581,7 +699,7 @@ function App() {
                 onClick={() => setPhase('physical_labs')}
                 className="premium-btn-primary py-2 text-xs flex items-center space-x-1 space-x-reverse"
               >
-                <span>מדדים ומעבדה</span>
+                <span>בדיקה גופנית</span>
                 <ChevronLeft className="h-4 w-4" />
               </button>
             </div>
@@ -691,13 +809,13 @@ function App() {
                         </div>
                         <h3 className="text-lg font-black text-emerald-800">הברית הטיפולית בוססה בהצלחה!</h3>
                         <p className="text-xs text-slate-600 max-w-md mx-auto leading-relaxed">
-                          השלמת בהצלחה את שלב השיח הטיפולי הראשוני. הצלחת לבסס אמפתיה ואמון מול ארתור, תוך שימור רציונלים מקצועיים. כעת נעבור לבדיקה גופנית מלאה והזמנת מדדי מעבדה.
+                          השלמת בהצלחה את שלב השיח הטיפולי הראשוני. הצלחת לבסס אמפתיה ואמון מול ארתור, תוך שימור רציונלים מקצועיים. כעת נעבור לבדיקה גופנית מלאה.
                         </p>
                         <button
                           onClick={() => setPhase('physical_labs')}
                           className="premium-btn-primary bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold px-6 py-3 rounded-2xl flex items-center justify-center space-x-2 space-x-reverse mx-auto shadow-md"
                         >
-                          <span>המשך לבדיקה גופנית ומעבדה</span>
+                          <span>המשך לבדיקה גופנית</span>
                           <ArrowLeft className="h-4 w-4" />
                         </button>
                       </div>
@@ -718,7 +836,7 @@ function App() {
                           </div>
                         ) : (
                           <div className="p-4 rounded-2xl bg-slate-100/50 text-slate-500 text-xs font-medium text-center">
-                            המפגש הראשוני הושלם. השתמש במדדי מעבדה למעלה להתקדמות.
+                            המפגש הראשוני הושלם. השתמש בבדיקה גופנית למעלה להתקדמות.
                           </div>
                         )}
                       </div>
@@ -815,194 +933,155 @@ function App() {
                 </div>
               </div>
 
-              {/* Side-by-Side Right and Left Foot Schematic Map */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                
-                {/* Left Foot Map (כף רגל שמאל) */}
-                <div className={`bg-white border p-6 rounded-3xl flex flex-col items-center justify-between relative min-h-[360px] transition-all duration-300 shadow-premium ${
-                  selectedFootTool ? 'border-indigo-100 bg-indigo-50/5' : 'border-slate-100'
-                }`}>
-                  <div className="absolute top-4 right-4 bg-slate-100 text-slate-600 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider shadow-sm">
-                    כף רגל שמאל
-                  </div>
-
-                  {/* Foot Outlines using CSS elements and test points */}
-                  <div className="w-32 h-64 border-4 border-slate-200 rounded-full flex flex-col items-center justify-between p-4 relative bg-slate-50/50 shadow-inner mt-4">
-                    {/* Metatarsal Heads Hotspots */}
-                    <div className="absolute top-6 left-5 flex flex-col items-center">
-                      <span className={`h-3 w-3 rounded-full shadow-sm transition-all duration-500 ${
-                        selectedFootTool === 'monofilament' ? 'bg-rose-500 animate-ping' : 'bg-slate-300'
-                      }`} />
-                      {selectedFootTool === 'monofilament' && <span className="text-[8px] font-black text-rose-600 mt-1">1st Met.</span>}
-                    </div>
-
-                    <div className="absolute top-10 left-14 flex flex-col items-center">
-                      <span className={`h-3 w-3 rounded-full shadow-sm transition-all duration-500 ${
-                        selectedFootTool === 'monofilament' ? 'bg-rose-500 animate-ping' : 'bg-slate-300'
-                      }`} />
-                      {selectedFootTool === 'monofilament' && <span className="text-[8px] font-black text-rose-600 mt-1">3rd Met.</span>}
-                    </div>
-
-                    <div className="absolute top-14 left-22 flex flex-col items-center">
-                      <span className={`h-3 w-3 rounded-full shadow-sm transition-all duration-500 ${
-                        selectedFootTool === 'monofilament' ? 'bg-rose-500 animate-ping' : 'bg-slate-300'
-                      }`} />
-                      {selectedFootTool === 'monofilament' && <span className="text-[8px] font-black text-rose-600 mt-1">5th Met.</span>}
-                    </div>
-
-                    {/* Artery Hotspots */}
-                    <div className="absolute top-28 left-14 flex flex-col items-center">
-                      <span className={`h-4 w-4 rounded-full shadow-sm transition-all duration-500 ${
-                        selectedFootTool === 'pulses' ? 'bg-amber-500 animate-pulse' : selectedFootTool === 'doppler' ? 'bg-sky-500 animate-bounce' : 'bg-slate-300'
-                      }`} />
-                      {(selectedFootTool === 'pulses' || selectedFootTool === 'doppler') && <span className="text-[8px] font-bold text-slate-600 mt-1">A. Dorsalis Pedis</span>}
-                    </div>
-
-                    <div className="absolute bottom-16 left-8 flex flex-col items-center">
-                      <span className={`h-4 w-4 rounded-full shadow-sm transition-all duration-500 ${
-                        selectedFootTool === 'pulses' ? 'bg-amber-500 animate-pulse' : selectedFootTool === 'doppler' ? 'bg-sky-500 animate-bounce' : 'bg-slate-300'
-                      }`} />
-                      {(selectedFootTool === 'pulses' || selectedFootTool === 'doppler') && <span className="text-[8px] font-bold text-slate-600 mt-1">A. Tibialis Post.</span>}
-                    </div>
-
-                    {/* Heel/Callus Hotspot */}
-                    <div className="absolute bottom-6 left-13 flex flex-col items-center">
-                      <span className={`h-3.5 w-3.5 rounded-full shadow-sm transition-all duration-500 ${
-                        selectedFootTool === 'visual' ? 'bg-orange-400' : 'bg-slate-300'
-                      }`} />
-                      {selectedFootTool === 'visual' && <span className="text-[8px] font-black text-orange-600 mt-1">Heel Callus</span>}
-                    </div>
-                  </div>
-
-                  {/* Reactive Foot Finding Card Summary */}
-                  <div className="w-full mt-4 text-xs font-semibold leading-relaxed text-right">
-                    {selectedFootTool === 'pulses' && (
-                      <div className="p-3 bg-amber-50/50 border border-amber-100 rounded-2xl text-amber-900 animate-fade-in shadow-sm">
-                        👣 <strong>מישוש דפקים:</strong> דפקים פריפריים מוחלשים (+2) במישוש עורקי גב כף הרגל (DP) והקרסול האחורי (PT).
-                      </div>
-                    )}
-                    {selectedFootTool === 'doppler' && (
-                      <div className="p-3 bg-sky-50/50 border border-sky-100 rounded-2xl text-sky-900 animate-fade-in shadow-sm">
-                        🔊 <strong>בדיקת דופלר:</strong> גל דו-פאזי מוחלש נמדד אקוסטית. זרימת דם קיימת ללא חסימה מלאה.
-                      </div>
-                    )}
-                    {selectedFootTool === 'monofilament' && (
-                      <div className="p-3 bg-rose-50/50 border border-rose-100 rounded-2xl text-rose-950 animate-fade-in shadow-sm">
-                        🔴 <strong>בדיקת תחושה:</strong> אובדן תחושה מגן (LOPS) בראשי המטטרסוסים 1, 3 ו-5. שאר נקודות הבדיקה תקינות.
-                      </div>
-                    )}
-                    {selectedFootTool === 'visual' && (
-                      <div className="p-3 bg-slate-50 border border-slate-200/60 rounded-2xl text-slate-700 animate-fade-in shadow-sm space-y-1">
-                        <div>• <strong>עור:</strong> יבש ומקשקש (Anhidrosis).</div>
-                        <div>• <strong>יבלת (Callus):</strong> קלוס מתון בעקב שמאל.</div>
-                        <div>• <strong>כיבים/עיוותים:</strong> אין עדות לכיבים פעילים, אין עיוותי שלד.</div>
-                      </div>
-                    )}
-                    {!selectedFootTool && (
-                      <div className="p-4 bg-slate-50 border border-slate-200/30 rounded-2xl text-slate-400 text-center text-[11px] font-medium leading-relaxed italic">
-                        בחר כלי בדיקה מסרגל הכלים להצגת הממצאים כאן.
-                      </div>
-                    )}
-                  </div>
+              {/* Premium Anatomical Foot Examination Canvas Card */}
+              <div className="bg-white rounded-3xl border border-slate-100 p-6 shadow-premium space-y-6">
+                <div className="text-center max-w-lg mx-auto">
+                  <span className="text-[10px] font-black text-indigo-600 bg-indigo-50 px-3 py-1 rounded-full uppercase tracking-widest shadow-sm">
+                    תחנת אומדן מונחית אנטומיה
+                  </span>
+                  <h3 className="text-lg font-black text-slate-900 mt-2">
+                    מפת כף הרגל של ארתור פנדלטון
+                  </h3>
+                  <p className="text-xs text-slate-400 mt-1 leading-relaxed">
+                    בחר כלי בדיקה מסרגל הכלים ולאחר מכן לחץ על נקודות האומדן (Hotspots) המהבהבות על גבי כף הרגל כדי לקרוא את הממצאים הקליניים.
+                  </p>
                 </div>
 
-                {/* Right Foot Map (כף רגל ימין) */}
-                <div className={`bg-white border p-6 rounded-3xl flex flex-col items-center justify-between relative min-h-[360px] transition-all duration-300 shadow-premium ${
-                  selectedFootTool ? 'border-indigo-100 bg-indigo-50/5' : 'border-slate-100'
-                }`}>
-                  <div className="absolute top-4 right-4 bg-slate-100 text-slate-600 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider shadow-sm">
-                    כף רגל ימין
-                  </div>
+                {/* Foot Image Canvas */}
+                <div className="max-w-2xl w-full relative mx-auto bg-slate-50 overflow-hidden rounded-2xl shadow-xl border border-slate-200 flex items-center justify-center">
+                  {/* Real Anatomical Asset */}
+                  <img 
+                    src="/tibialis.png" 
+                    alt="Anatomical Foot Schematic" 
+                    className="w-full h-auto block object-contain select-none"
+                  />
 
-                  {/* Foot Outlines using CSS elements and test points */}
-                  <div className="w-32 h-64 border-4 border-slate-200 rounded-full flex flex-col items-center justify-between p-4 relative bg-slate-50/50 shadow-inner mt-4">
-                    {/* Metatarsal Heads Hotspots */}
-                    <div className="absolute top-6 right-5 flex flex-col items-center">
-                      <span className={`h-3 w-3 rounded-full shadow-sm transition-all duration-500 ${
-                        selectedFootTool === 'monofilament' ? 'bg-rose-500 animate-ping' : 'bg-slate-300'
-                      }`} />
-                      {selectedFootTool === 'monofilament' && <span className="text-[8px] font-black text-rose-600 mt-1">1st Met.</span>}
+                  {/* Hotspots Overlay */}
+                  {/* 1. Dorsalis Pedis Hotspot (dp) - Pulse/Doppler only */}
+                  {(selectedFootTool === 'pulses' || selectedFootTool === 'doppler') && (
+                    <button
+                      type="button"
+                      onClick={() => handleHotspotClick('dp')}
+                      className="absolute group transition-transform duration-300 hover:scale-125 focus:outline-none z-30"
+                      style={{ top: '60.5%', left: '39.5%' }}
+                    >
+                      <span className="relative flex h-8 w-8 items-center justify-center">
+                        <span className={`animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 ${
+                          selectedFootTool === 'pulses' ? 'bg-amber-400' : 'bg-sky-400'
+                        }`} />
+                        <span className={`relative inline-flex rounded-full h-4 w-4 border-2 border-white shadow-md ${
+                          selectedFootTool === 'pulses' ? 'bg-amber-500' : 'bg-sky-500'
+                        }`} />
+                      </span>
+                      <span className="absolute hidden group-hover:block bg-slate-900/90 text-white text-[9px] font-extrabold px-2 py-1 rounded shadow-lg -top-8 left-1/2 -translate-x-1/2 whitespace-nowrap z-50 transition-all">
+                        עורק גב כף הרגל (DP)
+                      </span>
+                    </button>
+                  )}
+
+                  {/* 2. Tibialis Posterior Hotspot (tp) - Pulse/Doppler only */}
+                  {(selectedFootTool === 'pulses' || selectedFootTool === 'doppler') && (
+                    <button
+                      type="button"
+                      onClick={() => handleHotspotClick('tp')}
+                      className="absolute group transition-transform duration-300 hover:scale-125 focus:outline-none z-30"
+                      style={{ top: '53.6%', left: '62.7%' }}
+                    >
+                      <span className="relative flex h-8 w-8 items-center justify-center">
+                        <span className={`animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 ${
+                          selectedFootTool === 'pulses' ? 'bg-amber-400' : 'bg-sky-400'
+                        }`} />
+                        <span className={`relative inline-flex rounded-full h-4 w-4 border-2 border-white shadow-md ${
+                          selectedFootTool === 'pulses' ? 'bg-amber-500' : 'bg-sky-500'
+                        }`} />
+                      </span>
+                      <span className="absolute hidden group-hover:block bg-slate-900/90 text-white text-[9px] font-extrabold px-2 py-1 rounded shadow-lg -top-8 left-1/2 -translate-x-1/2 whitespace-nowrap z-50 transition-all">
+                        עורק הקרסול האחורי (TP)
+                      </span>
+                    </button>
+                  )}
+
+                  {/* 3. Monofilament Hotspot (mono) - Sensation only (plantar/bottom edge) */}
+                  {selectedFootTool === 'monofilament' && (
+                    <button
+                      type="button"
+                      onClick={() => handleHotspotClick('mono')}
+                      className="absolute group transition-transform duration-300 hover:scale-125 focus:outline-none z-30"
+                      style={{ top: '76.7%', left: '28.9%' }}
+                    >
+                      <span className="relative flex h-8 w-8 items-center justify-center">
+                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 bg-rose-400" />
+                        <span className="relative inline-flex rounded-full h-4 w-4 border-2 border-white shadow-md bg-rose-500 animate-pulse" />
+                      </span>
+                      <span className="absolute hidden group-hover:block bg-slate-900/90 text-white text-[9px] font-extrabold px-2 py-1 rounded shadow-lg -top-8 left-1/2 -translate-x-1/2 whitespace-nowrap z-50 transition-all">
+                        נקודת בדיקת תחושה (סוליה/כף רגל תחתונה)
+                      </span>
+                    </button>
+                  )}
+
+                  {/* 4. Visual Inspection Hotspot (visual) - Skin/callus only (heel profile) */}
+                  {selectedFootTool === 'visual' && (
+                    <button
+                      type="button"
+                      onClick={() => handleHotspotClick('visual')}
+                      className="absolute group transition-transform duration-300 hover:scale-125 focus:outline-none z-30"
+                      style={{ top: '78%', left: '68%' }}
+                    >
+                      <span className="relative flex h-8 w-8 items-center justify-center">
+                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 bg-orange-400" />
+                        <span className="relative inline-flex rounded-full h-4 w-4 border-2 border-white shadow-md bg-orange-500 animate-pulse" />
+                      </span>
+                      <span className="absolute hidden group-hover:block bg-slate-900/90 text-white text-[9px] font-extrabold px-2 py-1 rounded shadow-lg -top-8 left-1/2 -translate-x-1/2 whitespace-nowrap z-50 transition-all">
+                        אומדן יבלות ועור (עקב)
+                      </span>
+                    </button>
+                  )}
+
+                  {/* Elegant Instruction Banner when active tool is 'visual' */}
+                  {selectedFootTool === 'visual' && (
+                    <div className="absolute top-4 left-4 right-4 bg-orange-600/95 text-white p-3 rounded-xl shadow-lg border border-orange-400 flex items-center justify-between animate-fade-in z-20">
+                      <span className="text-[10px] font-black text-orange-100 block">אומדן ויזואלי ומבני פעיל</span>
+                      <span className="text-[11px] font-bold text-white text-right">לחץ על נקודת העקב הכתומה כדי לבחון יבלות ועור.</span>
                     </div>
+                  )}
 
-                    <div className="absolute top-10 right-14 flex flex-col items-center">
-                      <span className={`h-3 w-3 rounded-full shadow-sm transition-all duration-500 ${
-                        selectedFootTool === 'monofilament' ? 'bg-rose-500 animate-ping' : 'bg-slate-300'
-                      }`} />
-                      {selectedFootTool === 'monofilament' && <span className="text-[8px] font-black text-rose-600 mt-1">3rd Met.</span>}
+                  {/* Tip banner showing helpful feedback */}
+                  {tipText && (
+                    <div className="absolute bottom-4 left-4 right-4 bg-slate-900/85 text-white py-2 px-4 rounded-xl text-center text-xs font-semibold backdrop-blur-sm shadow-md border border-slate-700 z-20">
+                      {tipText}
                     </div>
-
-                    <div className="absolute top-14 right-22 flex flex-col items-center">
-                      <span className={`h-3 w-3 rounded-full shadow-sm transition-all duration-500 ${
-                        selectedFootTool === 'monofilament' ? 'bg-rose-500 animate-ping' : 'bg-slate-300'
-                      }`} />
-                      {selectedFootTool === 'monofilament' && <span className="text-[8px] font-black text-rose-600 mt-1">5th Met.</span>}
-                    </div>
-
-                    {/* Artery Hotspots */}
-                    <div className="absolute top-28 right-14 flex flex-col items-center">
-                      <span className={`h-4 w-4 rounded-full shadow-sm transition-all duration-500 ${
-                        selectedFootTool === 'pulses' ? 'bg-amber-500 animate-pulse' : selectedFootTool === 'doppler' ? 'bg-sky-500 animate-bounce' : 'bg-slate-300'
-                      }`} />
-                      {(selectedFootTool === 'pulses' || selectedFootTool === 'doppler') && <span className="text-[8px] font-bold text-slate-600 mt-1">A. Dorsalis Pedis</span>}
-                    </div>
-
-                    <div className="absolute bottom-16 right-8 flex flex-col items-center">
-                      <span className={`h-4 w-4 rounded-full shadow-sm transition-all duration-500 ${
-                        selectedFootTool === 'pulses' ? 'bg-amber-500 animate-pulse' : selectedFootTool === 'doppler' ? 'bg-sky-500 animate-bounce' : 'bg-slate-300'
-                      }`} />
-                      {(selectedFootTool === 'pulses' || selectedFootTool === 'doppler') && <span className="text-[8px] font-bold text-slate-600 mt-1">A. Tibialis Post.</span>}
-                    </div>
-
-                    {/* Heel/Callus Hotspot */}
-                    <div className="absolute bottom-6 right-13 flex flex-col items-center">
-                      <span className={`h-3.5 w-3.5 rounded-full shadow-sm transition-all duration-500 ${
-                        selectedFootTool === 'visual' ? 'bg-orange-400' : 'bg-slate-300'
-                      }`} />
-                      {selectedFootTool === 'visual' && <span className="text-[8px] font-black text-orange-600 mt-1">Heel Callus</span>}
-                    </div>
-                  </div>
-
-                  {/* Reactive Foot Finding Card Summary */}
-                  <div className="w-full mt-4 text-xs font-semibold leading-relaxed text-right">
-                    {selectedFootTool === 'pulses' && (
-                      <div className="p-3 bg-amber-50/50 border border-amber-100 rounded-2xl text-amber-900 animate-fade-in shadow-sm">
-                        👣 <strong>מישוש דפקים:</strong> דפקים פריפריים מוחלשים (+2) במישוש עורקי גב כף הרגל (DP) והקרסול האחורי (PT).
-                      </div>
-                    )}
-                    {selectedFootTool === 'doppler' && (
-                      <div className="p-3 bg-sky-50/50 border border-sky-100 rounded-2xl text-sky-900 animate-fade-in shadow-sm">
-                        🔊 <strong>בדיקת דופלר:</strong> גל דו-פאזי מוחלש נמדד אקוסטית. זרימת דם קיימת ללא חסימה מלאה.
-                      </div>
-                    )}
-                    {selectedFootTool === 'monofilament' && (
-                      <div className="p-3 bg-rose-50/50 border border-rose-100 rounded-2xl text-rose-950 animate-fade-in shadow-sm">
-                        🔴 <strong>בדיקת תחושה:</strong> אובדן תחושה מגן (LOPS) בראשי המטטרסוסים 1, 3 ו-5. שאר נקודות הבדיקה תקינות.
-                      </div>
-                    )}
-                    {selectedFootTool === 'visual' && (
-                      <div className="p-3 bg-slate-50 border border-slate-200/60 rounded-2xl text-slate-700 animate-fade-in shadow-sm space-y-1">
-                        <div>• <strong>עור:</strong> יבש ומקשקש (Anhidrosis).</div>
-                        <div>• <strong>יבלת (Callus):</strong> קלוס מתון בעקב ימין.</div>
-                        <div>• <strong>כיבים/עיוותים:</strong> אין עדות לכיבים פעילים, אין עיוותי שלד.</div>
-                      </div>
-                    )}
-                    {!selectedFootTool && (
-                      <div className="p-4 bg-slate-50 border border-slate-200/30 rounded-2xl text-slate-400 text-center text-[11px] font-medium leading-relaxed italic">
-                        בחר כלי בדיקה מסרגל הכלים להצגת הממצאים כאן.
-                      </div>
-                    )}
-                  </div>
+                  )}
                 </div>
 
+                {/* Displaying Clinical Finding Text dynamically */}
+                <div className="bg-slate-50 border border-slate-200/50 rounded-2xl p-5 space-y-2 text-right">
+                  <div className="flex items-center space-x-2 space-x-reverse">
+                    <span className={`h-2.5 w-2.5 rounded-full ${
+                      activeFindingTitle ? 'bg-indigo-500 animate-pulse' : 'bg-slate-300'
+                    }`} />
+                    <h4 className="text-xs font-black text-slate-800 uppercase tracking-wider">
+                      {activeFindingTitle || "ממצאי בדיקה פעילה"}
+                    </h4>
+                  </div>
+                  {activeFindingText ? (
+                    <p className="text-xs text-slate-600 font-bold leading-relaxed border-t border-slate-200/40 pt-2.5 mt-1 animate-fade-in">
+                      {activeFindingText}
+                    </p>
+                  ) : (
+                    <p className="text-xs text-slate-400 font-semibold leading-relaxed border-t border-slate-200/40 pt-2.5 mt-1 italic">
+                      לחץ על אחת מהנקודות המהבהבות על מפת כף הרגל כדי לקרוא את תוצאות הבדיקה עבור כלי האבחון שבחרת.
+                    </p>
+                  )}
+                </div>
               </div>
 
               {/* Doppler validation card with premium acoustics waves feedback if selected */}
               {selectedFootTool === 'doppler' && (
-                <div className="bg-sky-50 border border-sky-100/80 p-5 rounded-3xl text-right animate-fade-in shadow-sm flex items-center gap-4">
+                <div className="bg-sky-50 border border-sky-100/80 p-5 rounded-3xl text-right animate-fade-in shadow-sm flex flex-col sm:flex-row items-center gap-4">
                   <div className="h-12 w-12 rounded-2xl bg-sky-100 text-sky-600 flex items-center justify-center shrink-0">
                     <Volume2 className="h-6 w-6 animate-pulse" />
                   </div>
-                  <div>
+                  <div className="flex-1">
                     <span className="inline-block text-[9px] font-black text-sky-700 bg-sky-100 px-2 py-0.5 rounded-md mb-1 uppercase tracking-wider">
                       בונוס קליני מועדף
                     </span>
@@ -1010,8 +1089,16 @@ function App() {
                       אומדן דופלר בוצע בהצלחה!
                     </h5>
                     <p className="text-[11px] text-slate-600 font-semibold leading-relaxed mt-0.5">
-                      בחירה בדופלר אקוסטי מהווה פרקטיקה קלינית מועדפת במרפאות מומחים להערכת זרימת דם ומניעת מחלות היקפיות (PAD). הוענקו 5 נקודות בונוס לדיוק קליני וברית טיפולית.
+                      בחירה בדופלר אקוסטי מהווה פרקטיקה קלינית מועדפת במרפאות מומחים להערכת זרימת דם ומניעת מחלות היקפיות (PAD). הוענקו 5 נקודות בונוס לדיוק קליני ובברית טיפולית.
                     </p>
+                  </div>
+                  {/* Acoustic Waves Visualization */}
+                  <div className="flex items-center gap-1 h-6 px-3 bg-sky-100/60 rounded-full shrink-0">
+                    <span className="w-1 h-3 bg-sky-500 rounded-full animate-pulse" />
+                    <span className="w-1 h-5 bg-sky-600 rounded-full animate-bounce" />
+                    <span className="w-1 h-4 bg-sky-500 rounded-full animate-pulse" />
+                    <span className="w-1 h-6 bg-sky-600 rounded-full animate-bounce" />
+                    <span className="w-1 h-2 bg-sky-400 rounded-full animate-pulse" />
                   </div>
                 </div>
               )}
@@ -1353,36 +1440,388 @@ function App() {
         </div>
       )}
 
-      {/* 4. Treatment Strategy Phase (Hebrew Placeholder Shell) */}
+      {/* 4. Treatment Strategy Phase (Two-Part progressive learning gate) */}
       {state.currentPhase === 'treatment' && (
         <div className="space-y-8 animate-all duration-300 text-right">
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between border-b border-slate-100 pb-6">
             <div>
               <span className="inline-flex items-center space-x-1.5 space-x-reverse rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700">
-                <Heart className="h-3 w-3 text-emerald-500" />
-                <span>טיפול תרופתי ושינוי אורח חיים</span>
+                <Heart className="h-3 w-3 text-emerald-500 animate-pulse" />
+                <span>טיפול תרופתי ושינוי אורח חיים (שלב 4 מתוך 6)</span>
               </span>
               <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900 mt-2 font-sans">
-                אופטימיזציה טיפולית
+                {treatmentPart === 'part1' ? "שלב א': סינון ואבחון קווי טיפול" : "שלב ב': ניהול הדילמה המומחית"}
               </h2>
             </div>
             <div className="flex flex-wrap gap-2 space-x-reverse mt-4 sm:mt-0">
-              <button onClick={() => setPhase('physical_labs')} className="premium-btn-secondary py-2 text-xs w-full sm:w-auto">
-                חזרה למעבדה
+              <button 
+                type="button"
+                onClick={() => setPhase('physical_labs')} 
+                className="premium-btn-secondary py-2 text-xs w-full sm:w-auto"
+              >
+                חזרה לבדיקה גופנית
               </button>
-              <button onClick={() => setPhase('counselling')} className="premium-btn-primary py-2 text-xs w-full sm:w-auto">
-                שלב הייעוץ
-              </button>
+              {treatmentPart === 'part2' && (
+                <button 
+                  type="button"
+                  onClick={() => setTreatmentPart('part1')} 
+                  className="premium-btn-secondary py-2 text-xs w-full sm:w-auto"
+                >
+                  חזרה לחלק א'
+                </button>
+              )}
             </div>
           </div>
 
-          <div className="p-4 sm:p-8 border border-slate-100 bg-slate-50/40 rounded-3xl text-center space-y-4">
-            <Scale className="h-12 w-12 text-slate-400 mx-auto" />
-            <h3 className="text-xl font-bold text-slate-800">סביבת עבודה לרשימת מרשמים והתאמות מינון</h3>
-            <p className="text-sm text-slate-500 max-w-md mx-auto">
-              בשלב הבא, תוכל לבחון אפשרויות קליניות מגוונות (כגון שילוב מעכבי SGLT2 להגנה כלייתית וקרדיווסקולרית עקב מיקרואלבומינוריה, אנלוגים ל-GLP-1 או כוונון היענות למטפורמין) ולמדוד את השפעתם.
-            </p>
-          </div>
+          {treatmentPart === 'part1' ? (
+            /* Part 1 UI */
+            <div className="space-y-6">
+              <div className="bg-slate-50 border border-slate-150 rounded-2xl p-6">
+                <h3 className="text-lg font-bold text-slate-900 mb-2">שאלה לסינון קליני:</h3>
+                <p className="text-sm text-slate-700 leading-relaxed font-semibold">
+                  לפני שקובעים את התוכנית הסופית, אילו מבין האפשרויות הטיפוליות הבאות הן הרלוונטיות והמתאימות ביותר למצבו הקליני של ארתור? (במידת הצורך, ניתן לנווט חזרה לשלבים הקודמים בסרגל העליון כדי לרענן את הזיכרון במדדי המטופל).
+                </p>
+              </div>
+
+              {/* Option Matrix Grid (Shuffled Order) */}
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {[
+                  {
+                    id: 'sulfonyl',
+                    title: 'סולפוניל-אוריאה (Sulfonureas - למשל Amaryl / Glibetic)',
+                    desc: 'מעוררים הפרשת אינסולין ללא תלות ברמת הגלוקוז, מעלים סיכון משמעותי להיפוגליקמיה ולעלייה במשקל.',
+                    color: 'border-slate-200 bg-slate-50/10 text-slate-800'
+                  },
+                  {
+                    id: 'sglt2',
+                    title: 'מעכבי SGLT2 (Jardiance / Forxiga)',
+                    desc: 'פועלים בנפרון להגברת הפרשת גלוקוז בשתן, מפחיתים לחץ גלומרולרי ומקנים הגנה כלייתית חזקה.',
+                    color: 'border-emerald-200 bg-emerald-50/10 text-emerald-800'
+                  },
+                  {
+                    id: 'insulin',
+                    title: 'אינסולין (Insulin therapy)',
+                    desc: 'טיפול הורדת סוכר יעיל, אך מעלה סיכון להיפוגליקמיה ולעלייה במשקל. אינו מועדף כקו ראשון ל-BMI 30.9 ללא אי-ספיקה חריפה.',
+                    color: 'border-slate-200 bg-slate-50/10 text-slate-800'
+                  },
+                  {
+                    id: 'dpp4',
+                    title: 'מעכבי DPP-4 (Januvia / Galvus)',
+                    desc: 'מעכבים פירוק GLP-1 אנדוגני. בטוחים אך בעלי יעילות מתונה ואינם מציעים הגנה כלייתית או ירידה במשקל בהשוואה ל-GLP-1 RA.',
+                    color: 'border-slate-200 bg-slate-50/10 text-slate-800'
+                  },
+                  {
+                    id: 'actos',
+                    title: 'אקטוס (Actos / Pioglitazone)',
+                    desc: 'משפר רגישות לאינסולין אך עלול לגרום לאגירת נוזלים חריפה, בצקות, עלייה במשקל, ומחמיר אי-ספיקת לב.',
+                    color: 'border-slate-200 bg-slate-50/10 text-slate-800'
+                  },
+                  {
+                    id: 'glp1',
+                    title: 'אנלוגים ל-GLP-1 (Ozempic / Trulicity)',
+                    desc: 'מגבירים הפרשת אינסולין תלויית גלוקוז, מעכבים גלוקגון, מאיטים התרוקנות קיבה ומסייעים משמעותית לירידה במשקל.',
+                    color: 'border-sky-200 bg-sky-50/10 text-sky-800'
+                  }
+                ].map((opt) => {
+                  const isChecked = part1Checked.includes(opt.id);
+                  return (
+                    <button
+                      key={opt.id}
+                      type="button"
+                      onClick={() => {
+                        // Reset submit states when selection changes
+                        setPart1Submitted(false);
+                        setPart1IsValid(false);
+                        setPart1Feedback(null);
+                        setPart1FeedbackType(null);
+
+                        setPart1Checked(prev => {
+                          const isExist = prev.includes(opt.id);
+                          return isExist ? prev.filter(x => x !== opt.id) : [...prev, opt.id];
+                        });
+                      }}
+                      className={`flex flex-col text-right p-4 rounded-2xl border transition-all duration-300 text-slate-800 hover:border-slate-400 ${
+                        isChecked 
+                          ? 'border-sky-500 bg-sky-50/30 ring-2 ring-sky-500/20' 
+                          : 'border-slate-200 bg-white'
+                      }`}
+                    >
+                      <div className="flex items-center space-x-2 space-x-reverse mb-2 w-full justify-between">
+                        <span className="font-bold text-sm text-slate-900">{opt.title}</span>
+                        <div className={`h-5 w-5 rounded-md border flex items-center justify-center shrink-0 transition-all duration-300 ${
+                          isChecked ? 'bg-sky-500 border-sky-500 text-white' : 'border-slate-300 bg-white'
+                        }`}>
+                          {isChecked && (
+                            <svg className="h-3 w-3 fill-current" viewBox="0 0 20 20">
+                              <path d="M0 11l2-2 5 5L18 3l2 2L7 18z"/>
+                            </svg>
+                          )}
+                        </div>
+                      </div>
+                      <p className="text-xs text-slate-500 font-medium leading-relaxed">{opt.desc}</p>
+                    </button>
+                  );
+                })}
+              </div>
+
+              {/* Logic Feedback Alerts */}
+              {part1Submitted && part1Feedback && part1FeedbackType === 'error' && (
+                <div className="bg-rose-50 border border-rose-100 rounded-2xl p-4 text-rose-700 flex items-start space-x-3 space-x-reverse animate-all duration-300">
+                  <ShieldAlert className="h-5 w-5 text-rose-500 shrink-0 mt-0.5" />
+                  <div className="text-sm font-semibold">{part1Feedback}</div>
+                </div>
+              )}
+
+              {/* Info Feedback Alerts */}
+              {part1Submitted && part1Feedback && part1FeedbackType === 'info' && (
+                <div className="bg-sky-50 border border-sky-100 rounded-2xl p-4 text-sky-850 flex items-start space-x-3 space-x-reverse animate-all duration-300">
+                  <Info className="h-5 w-5 text-sky-500 shrink-0 mt-0.5 animate-pulse" />
+                  <div className="text-sm font-semibold leading-relaxed">{part1Feedback}</div>
+                </div>
+              )}
+
+              {/* Success Alert */}
+              {part1Submitted && part1IsValid && (
+                <div className="bg-emerald-50 border border-emerald-100 rounded-2xl p-4 text-emerald-800 flex items-start space-x-3 space-x-reverse animate-all duration-300">
+                  <CheckCircle2 className="h-5 w-5 text-emerald-500 shrink-0 mt-0.5 animate-bounce" />
+                  <div className="text-sm font-bold">
+                    זיהית נכון! שילוב מעכבי SGLT2 ואנלוגים ל-GLP-1 הוא המענה הסינרגיסטי הטוב ביותר לעודף משקל (BMI 30.9), פגיעה גלומרולרית מוקדמת (ACR 140) וצורך באיזון סוכר מובהק (HbA1c 8.9%). לחצי על הלחצן למטה כדי לעבור לשלב הדילמה הקלינית.
+                  </div>
+                </div>
+              )}
+
+              {/* Part 1 Navigation */}
+              <div className="flex justify-center pt-4 border-t border-slate-100">
+                {part1IsValid ? (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setTreatmentPart('part2');
+                      setPart1Feedback(null);
+                      setPart1Submitted(false);
+                      setPart1IsValid(false);
+                    }}
+                    className="premium-btn-primary px-8 py-3 text-sm flex items-center space-x-2 space-x-reverse transition-all duration-300 shadow-lg hover:shadow-sky-200/50 hover:scale-105 active:scale-95 animate-bounce"
+                  >
+                    <span>המשך לדיון קליני</span>
+                    <ArrowLeft className="h-4 w-4" />
+                  </button>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setPart1Submitted(true);
+                      const hasSglt2 = part1Checked.includes('sglt2');
+                      const hasGlp1 = part1Checked.includes('glp1');
+                      const isExactlyTwo = part1Checked.length === 2;
+                      const isCorrect = hasSglt2 && hasGlp1 && isExactlyTwo;
+                      
+                      if (isCorrect) {
+                        setPart1IsValid(true);
+                        setPart1Feedback(null);
+                        setPart1FeedbackType(null);
+                      } else {
+                        setPart1IsValid(false);
+                        
+                        // Check for genuinely incorrect/harmful options
+                        const hasIncorrectOptions = part1Checked.some(x => ['sulfonyl', 'actos', 'insulin', 'dpp4'].includes(x));
+                        
+                        if (hasIncorrectOptions) {
+                          setPart1FeedbackType('error');
+                          const hasSulfonylOrActos = part1Checked.includes('sulfonyl') || part1Checked.includes('actos');
+                          if (hasSulfonylOrActos) {
+                            setPart1Feedback("חשבי שנית: האם סולפוניל-אוריאה או אקטוס מתאימים למטופל עם BMI גבוה וסיכון כלייתי, או שהן עלולות להחמיר עלייה במשקל ואגירת נוזלים?");
+                          } else {
+                            setPart1Feedback("חשבי שנית: האם בחירה זו מעניקה הגנה כלייתית מוכחת וירידה משמעותית במשקל בהשוואה לחלופות האחרות?");
+                          }
+                        } else if (part1Checked.length === 1 && part1Checked.includes('sglt2')) {
+                          setPart1FeedbackType('info');
+                          setPart1Feedback("בחירה נכונה בחלק מהטיפול. תרופה זו נותנת מענה מובהק לאחד המדדים המרכזיים של ארתור. האם זיהית מדד מרכזי נוסף בנתוני המעבדה והגוף שלו שדורש מענה תרופתי קו-ראשון? ניתן לחזור למדדי המטופל בסרגל העליון כדי לבדוק שוב.");
+                        } else if (part1Checked.length === 1 && part1Checked.includes('glp1')) {
+                          setPart1FeedbackType('info');
+                          setPart1Feedback("בחירה נכונה בחלק מהטיפול. תרופה זו נותנת מענה מובהק לאחד המדדים המרכזיים של ארתור. האם זיהית מדד מרכזי נוסף בנתוני המעבדה והגוף שלו שדורש מענה תרופתי קו-ראשון? ניתן לחזור למדדי המטופל בסרגל העליון כדי לבדוק שוב.");
+                        } else {
+                          setPart1FeedbackType('error');
+                          setPart1Feedback("חשבי שנית: האם בחירה זו מעניקה הגנה כלייתית מוכחת וירידה משמעותית במשקל בהשוואה לחלופות האחרות?");
+                        }
+                      }
+                    }}
+                    disabled={part1Checked.length === 0}
+                    className={`premium-btn-primary px-8 py-3 text-sm flex items-center space-x-2 space-x-reverse transition-all duration-300 ${
+                      part1Checked.length > 0
+                        ? 'shadow-lg hover:shadow-sky-200/50 hover:scale-105 active:scale-95'
+                        : 'opacity-40 cursor-not-allowed'
+                    }`}
+                  >
+                    <span>בדיקת התאמת הטיפול</span>
+                    <ArrowLeft className="h-4 w-4" />
+                  </button>
+                )}
+              </div>
+            </div>
+          ) : (
+            /* Part 2 UI - The Clinical Dilemma */
+            <div className="space-y-6">
+              <div className="bg-slate-900 text-white rounded-2xl p-6 border border-slate-950 shadow-lg">
+                <h3 className="text-emerald-400 font-bold text-sm mb-2 uppercase tracking-wider">שלב ב': ניהול הדילמה המומחית</h3>
+                <p className="text-base font-bold leading-relaxed">
+                  בחרת נכון ב-SGLT2 ו-GLP-1. כעת, בהתחשב ב-ACR 140 וב-BMI הגבוה שלו, כיצד תבחרי לתעדף את תחילת הטיפול?
+                </p>
+              </div>
+
+              {/* 3 Dilemma Resolution Cards */}
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                {[
+                  {
+                    id: 'sglt2',
+                    title: 'עדיפות למעכבי SGLT2 (Forxiga / Jardiance)',
+                    summary: 'התחלת מעכבי SGLT2 כקו ראשון להשגת הגנה כלייתית ישירה ומיידית והפחתת לחץ תוך-גלומרולרי.',
+                    color: 'hover:border-emerald-300 border-slate-200 bg-white text-slate-800',
+                    activeColor: 'border-emerald-500 bg-emerald-50/20 ring-2 ring-emerald-500/20 text-slate-800'
+                  },
+                  {
+                    id: 'glp1',
+                    title: 'עדיפות לאנלוגים ל-GLP-1 (Ozempic / Trulicity)',
+                    summary: 'התחלת אנלוגים ל-GLP-1 תחילה כקו ראשון להתמודדות עם השמנת יתר (BMI 30.9) וחוסר איזון גליקמי חריף (HbA1c 8.9%).',
+                    color: 'hover:border-sky-300 border-slate-200 bg-white text-slate-800',
+                    activeColor: 'border-sky-500 bg-sky-50/20 ring-2 ring-sky-500/20 text-slate-800'
+                  },
+                  {
+                    id: 'hybrid',
+                    title: 'שילוב היברידי בו-זמני (SGLT2 + GLP-1)',
+                    summary: 'התחלה משולבת ובו-זמנית של SGLT2 ו-GLP-1 לקבלת הגנה כלייתית מירבית ואיזון גליקמי מהיר וסינרגיסטי.',
+                    color: 'hover:border-violet-300 border-slate-200 bg-white text-slate-800',
+                    activeColor: 'border-violet-500 bg-violet-50/20 ring-2 ring-violet-500/20 text-slate-800'
+                  }
+                ].map((card) => {
+                  const isActive = part2Choice === card.id;
+                  return (
+                    <button
+                      key={card.id}
+                      type="button"
+                      onClick={() => {
+                        setPart2Choice(card.id as any);
+                        setPart2Checklist({}); // Reset checklist when switching cards
+                      }}
+                      className={`flex flex-col text-right p-5 rounded-3xl border transition-all duration-300 ${
+                        isActive ? card.activeColor : card.color
+                      }`}
+                    >
+                      <span className="font-extrabold text-base text-slate-900 mb-2">{card.title}</span>
+                      <p className="text-xs text-slate-500 leading-relaxed font-semibold">{card.summary}</p>
+                    </button>
+                  );
+                })}
+              </div>
+
+              {/* Evidence-Based Feedback Rationale & Nursing Checklist */}
+              {part2Choice && (
+                <div className="space-y-6 animate-all duration-300">
+                  {/* Feedback Card */}
+                  <div className="bg-slate-50 border border-slate-200 rounded-3xl p-6">
+                    <h4 className="text-base font-bold text-slate-900 flex items-center space-x-2 space-x-reverse mb-3">
+                      <Sparkles className="h-5 w-5 text-amber-500 animate-pulse" />
+                      <span>רציונל קליני מבוסס ראיות:</span>
+                    </h4>
+                    <p className="text-sm text-slate-700 leading-relaxed font-medium">
+                      {part2Choice === 'sglt2' && (
+                        "בחירה קלינית מעולה התואמת את הנחיות KDIGO 2023. למטופל עם סוכרת, שלב 2 של מחלת כליות כרונית (eGFR 72) ומיקרואלבומינוריה מוכחת (ACR 140 mg/g), מעכבי SGLT2 מעניקים את ההגנה הכלייתית הישירה והחזקה ביותר. הם מפחיתים לחץ תוך-גלומרולרי ומאיטים משמעותית הידרדרות כלייתית ואשפוזים על רקע אי-ספיקת לב, ללא קשר לרמת ה-HbA1c."
+                      )}
+                      {part2Choice === 'glp1' && (
+                        "בחירה טיפולית מוצדקת קלינית המתמקדת בשני חסמים מרכזיים של ארתור: השמנת יתר משמעותית (BMI 30.9) וחוסר איזון גליקמי חריף (HbA1c 8.9%). אנלוגים ל-GLP-1 מציעים הפחתת משקל דרמטית, שיפור תחושת השובע (רלוונטי למטופל שנוטה לאכול משלוחי מזון מהיר בערב), והפחתה מוכחת באירועים קרדיווסקולריים לצד הפחתת אלבומינוריה משנית."
+                      )}
+                      {part2Choice === 'hybrid' && (
+                        "זוהי הגישה הטיפולית האגרסיבית והמקיפה ביותר עבור ארתור. שילוב שתי המשפחות מעניק אפקט סינרגיסטי עצמתי: הגנה כלייתית מקסימלית (SGLT2i), ירידה משמעותית במשקל ואיזון גליקמי מהיר (GLP-1 RA). גישה זו נשקלת ברצינות כאשר ה-HbA1c רחוק מאוד מהיעד (8.9%) וישנו שילוב של השמנה ופגיעה כלייתית מוקדמת. עם זאת, היא דורשת מוכנות גבוהה של המטופל והסתגלות למשטר תרופתי מורכב."
+                      )}
+                    </p>
+                  </div>
+
+                  {/* Checklist Card */}
+                  <div className="bg-white border border-slate-200 rounded-3xl p-6">
+                    <h4 className="text-base font-bold text-slate-900 flex items-center space-x-2 space-x-reverse mb-4">
+                      <FileText className="h-5 w-5 text-sky-500" />
+                      <span>צ'קליסט התערבויות סיעודיות מומחה (יש לאשר את כל הסעיפים לביסוס התוכנית):</span>
+                    </h4>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {(part2Choice === 'sglt2' ? [
+                        { id: 'hygiene', text: 'הדרכה קפדנית על היגיינה אישית ואינטימית למניעת זיהומים פטרייתיים בדרכי השתן (עקב גליקוזוריה).' },
+                        { id: 'hydration', text: 'הסבר על חשיבות השתייה המרובה ומניעת התייבשות (אפקט משתן מתון).' },
+                        { id: 'sickdays', text: 'הדרכה על "חוקי ימי מחלה" (Sick Day Rules) - הפסקה זמנית של התרופה במצבים של שלשול, הקאה או צום לצורך מניעת eDKA.' },
+                        { id: 'labs', text: 'ניטור תקופתי של תפקודי כליות (Serum Creatinine, eGFR) ואלקטרוליטים.' }
+                      ] : part2Choice === 'glp1' ? [
+                        { id: 'technique', text: 'הדרכה ותרגול טכניקת הזרקה תת-עורית (Subcutaneous Injection) פעם בשבוע.' },
+                        { id: 'gi', text: 'הסבר מפורט על תופעות לוואי במערכת העיכול (בחילות) וחשיבות העלייה ההדרגתית במינון (Titration).' },
+                        { id: 'meals', text: 'הנחיה לאכילת ארוחות קטנות יותר והפסקת אכילה ברגע שמרגישים מלאים למניעת בחילות או הקאות.' },
+                        { id: 'pancreatitis', text: 'מעקב אחר תסמינים מחשידים לדלקת לבלב (פנקריאטיטיס) - כאב בטן חריף מקרין לגב.' }
+                      ] : [
+                        { id: 'cognitive', text: 'תיאום תוכנית הדרכה דו-שלבית מקיפה לשתי התרופות החדשות למניעת עומס קוגניטיבי על המטופל.' },
+                        { id: 'bp', text: 'ניטור הדוק של לחצי דם עקב אפקט סינרגיסטי להורדת ל"ד בשילוב עם רמיפריל.' },
+                        { id: 'followup', text: 'בניית תוכנית מעקב שבועית וטלפונית אחר הסתגלות המטופל ותופעות לוואי.' },
+                        { id: 'adherence', text: 'הערכת ההיענות לטיפול ובניית מנגנוני תזכורת (כזכור, ארתור נוטה לשכוח את מנת הערב של המטפורמין).' }
+                      ]).map((item) => {
+                        const isChecked = !!part2Checklist[item.id];
+                        return (
+                          <button
+                            key={item.id}
+                            type="button"
+                            onClick={() => {
+                              setPart2Checklist(prev => ({ ...prev, [item.id]: !prev[item.id] }));
+                            }}
+                            className={`flex text-right items-start space-x-3 space-x-reverse p-4 rounded-2xl border transition-all duration-300 ${
+                              isChecked 
+                                ? 'border-sky-500 bg-sky-50/20 text-slate-800 shadow-sm' 
+                                : 'border-slate-100 bg-slate-50/30 text-slate-650 hover:border-slate-200'
+                            }`}
+                          >
+                            <div className={`h-5 w-5 rounded border flex items-center justify-center shrink-0 mt-0.5 transition-all duration-300 ${
+                              isChecked ? 'bg-sky-500 border-sky-500 text-white' : 'border-slate-300 bg-white'
+                            }`}>
+                              {isChecked && (
+                                <svg className="h-3 w-3 fill-current" viewBox="0 0 20 20">
+                                  <path d="M0 11l2-2 5 5L18 3l2 2L7 18z"/>
+                                </svg>
+                              )}
+                            </div>
+                            <span className="text-xs font-semibold leading-relaxed">{item.text}</span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  {/* Complete Action Panel */}
+                  {Object.values(part2Checklist).filter(Boolean).length === 4 && (
+                    <div className="flex justify-center pt-4 border-t border-slate-100 animate-all duration-300">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          // Award positive clinical scores for completing Phase 4 successfully!
+                          setState(prev => {
+                            const newAccuracy = Math.min(100, prev.scores.accuracy + 10);
+                            const newAlliance = Math.min(100, prev.scores.alliance + 10);
+                            return {
+                              ...prev,
+                              scores: {
+                                ...prev.scores,
+                                accuracy: newAccuracy,
+                                alliance: newAlliance,
+                              }
+                            };
+                          });
+                          setPhase('counselling');
+                        }}
+                        className="premium-btn-primary px-8 py-3 text-sm flex items-center space-x-2 space-x-reverse shadow-lg hover:shadow-sky-200/50 hover:scale-105 active:scale-95 animate-bounce"
+                      >
+                        <span>המשך לשלב הייעוץ והדרכה</span>
+                        <ArrowLeft className="h-4 w-4" />
+                      </button>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
         </div>
       )}
 

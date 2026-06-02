@@ -8,13 +8,15 @@ interface NavbarProps {
     alliance: number;
     safety: number;
   };
+  onStepClick?: (stepIdx: number) => void;
+  maxUnlockedStep?: number;
 }
 
-export const Navbar: React.FC<NavbarProps> = ({ currentPhase, scores }) => {
+export const Navbar: React.FC<NavbarProps> = ({ currentPhase, scores, onStepClick, maxUnlockedStep }) => {
   const phases = [
     { id: 'welcome', label: 'פרטי המטופל' },
     { id: 'anamnesis', label: 'אנמנזה' },
-    { id: 'physical_labs', label: 'מדדים ומעבדה' },
+    { id: 'physical_labs', label: 'בדיקה גופנית' },
     { id: 'treatment', label: 'תוכנית טיפול' },
     { id: 'counselling', label: 'ייעוץ והדרכה' },
     { id: 'feedback', label: 'הערכה סופית' },
@@ -53,6 +55,7 @@ export const Navbar: React.FC<NavbarProps> = ({ currentPhase, scores }) => {
           {phases.map((phase, idx) => {
             const isCompleted = idx < currentIdx;
             const isActive = idx === currentIdx;
+            const isUnlocked = idx <= (maxUnlockedStep || 0);
 
             return (
               <React.Fragment key={phase.id}>
@@ -61,7 +64,16 @@ export const Navbar: React.FC<NavbarProps> = ({ currentPhase, scores }) => {
                     isCompleted ? 'bg-sky-500' : 'bg-slate-100'
                   }`} />
                 )}
-                <div className="flex items-center space-x-1.5 space-x-reverse">
+                <button
+                  type="button"
+                  disabled={!isUnlocked}
+                  onClick={() => onStepClick && onStepClick(idx)}
+                  className={`flex items-center space-x-1.5 space-x-reverse focus:outline-none transition-all duration-300 ${
+                    isUnlocked 
+                      ? 'cursor-pointer hover:opacity-80 active:scale-95' 
+                      : 'cursor-not-allowed opacity-40'
+                  }`}
+                >
                   <span
                     className={`flex h-6 w-6 items-center justify-center rounded-full text-xs font-semibold transition-all duration-500 ${
                       isActive
@@ -84,7 +96,7 @@ export const Navbar: React.FC<NavbarProps> = ({ currentPhase, scores }) => {
                   >
                     {phase.label}
                   </span>
-                </div>
+                </button>
               </React.Fragment>
             );
           })}
