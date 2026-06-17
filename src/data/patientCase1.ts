@@ -12,7 +12,7 @@ export const patientCase1: PatientCase = {
     height: 178,
     weight: 98,
     diagnosisYear: 2018,
-    diagnosisAge: 57,
+    diagnosisAge: 50,
     vitalSigns: {
       bloodPressure: '142/88 mmHg',
       heartRate: 78,

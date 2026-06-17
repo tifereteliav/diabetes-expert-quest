@@ -339,7 +339,7 @@ function App() {
                   <div className="text-slate-400">משקל: <span className="text-slate-800 font-bold">{patientCase1.demographics.weight} ק״ג</span></div>
                   <div className="text-slate-400">ל״ד: <span className="text-slate-800 font-bold">{patientCase1.demographics.vitalSigns.bloodPressure}</span></div>
                   <div className="text-slate-400 col-span-2 border-t border-slate-100 pt-2 mt-1">שנת אבחון: <span className="text-slate-800 font-bold">2018 (במשך 8 שנים)</span></div>
-                  <div className="text-slate-400 col-span-2">גיל אבחון: <span className="text-slate-800 font-bold">57</span></div>
+                  <div className="text-slate-400 col-span-2">גיל אבחון: <span className="text-slate-800 font-bold">{patientCase1.demographics.diagnosisAge}</span></div>
                 </div>
               </div>
 
