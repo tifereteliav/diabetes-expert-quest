@@ -49,6 +49,12 @@ function App() {
     monofilament: false,
     visual: false,
   });
+  const [inspectedHotspots, setInspectedHotspots] = useState<Record<string, string[]>>({
+    pulses: [],
+    doppler: [],
+    monofilament: [],
+    visual: [],
+  });
   const [quizAnswers, setQuizAnswers] = useState<{ riskLevel: string | null; frequency: string | null }>({
     riskLevel: null,
     frequency: null,
@@ -207,7 +213,7 @@ function App() {
     }
   };
 
-  const handleHotspotClick = (hotspotType: 'dp' | 'tp' | 'mono' | 'visual') => {
+  const handleHotspotClick = (hotspotType: 'dp' | 'tp' | 'mono' | 'visual_heel' | 'visual_toes') => {
     if (!selectedFootTool) {
       setTipText("יש לבחור כלי בדיקה מסרגל הכלים תחילה!");
       return;
@@ -215,39 +221,65 @@ function App() {
 
     if (selectedFootTool === 'pulses') {
       if (hotspotType === 'dp' || hotspotType === 'tp') {
-        setCompletedTools(prev => ({ ...prev, pulses: true }));
-        setActiveFindingTitle("מישוש דפקים פריפריים");
-        setActiveFindingText("נמוש דפק תקין ומלא. דפקים פריפריים תקינים ומלאים, זרימת דם תקינה ושמורה בשמיעת דופלר.");
-        setTipText("נמוש דפק תקין ומלא בשני עורקי כפות הרגליים.");
-      } else {
-        setTipText("כלי זה מיועד למישוש דפקים (Dorsalis Pedis / Posterior Tibial) בלבד.");
+        const currentList = inspectedHotspots.pulses || [];
+        const updatedList = Array.from(new Set([...currentList, hotspotType]));
+        setInspectedHotspots(prev => ({ ...prev, pulses: updatedList }));
+
+        if (updatedList.length >= 2) {
+          setCompletedTools(prev => ({ ...prev, pulses: true }));
+          setActiveFindingTitle("מישוש דפקים פריפריים (הושלם 2/2)");
+          setActiveFindingText("נמוש דפק תקין ומלא בשני העורקים (Dorsalis Pedis & Posterior Tibial). דפקים פריפריים תקינים ומלאים, זרימת דם שמורה.");
+          setTipText("כל 2 נקודות הדופק נבדקו בהצלחה! השלב הושלם. כעת ניתן לעבור לבדיקה הבאה.");
+        } else {
+          setActiveFindingTitle("מישוש דפקים פריפריים (נבדקה 1/2 נקודות)");
+          setActiveFindingText(`נבדק עורק ${hotspotType === 'dp' ? 'גב כף הרגל (DP)' : 'הקרסול (TP)'}. יש ללחוץ על נקודת הדופק השנייה בלוח להשלמת האומדן.`);
+          setTipText("נבדקה 1 מתוך 2 נקודות דופק. לחץ כעת על נקודת הדופק השנייה בלוח!");
+        }
       }
     } else if (selectedFootTool === 'doppler') {
       if (hotspotType === 'dp' || hotspotType === 'tp') {
-        setCompletedTools(prev => ({ ...prev, doppler: true }));
-        setActiveFindingTitle("בדיקת דופלר (Doppler)");
-        setActiveFindingText("בשמיעת דופלר נשמע גל תקין וזרימת דם שמורה. דפקים פריפריים תקינים ומלאים, זרימת דם תקינה ושמורה בשמיעת דופלר.");
-        setTipText("נמדד גל תקין בדופלר אקוסטי בשתי כפות הרגליים.");
-      } else {
-        setTipText("כלי זה מיועד לבדיקת דופלר (Dorsalis Pedis / Posterior Tibial) בלבד.");
+        const currentList = inspectedHotspots.doppler || [];
+        const updatedList = Array.from(new Set([...currentList, hotspotType]));
+        setInspectedHotspots(prev => ({ ...prev, doppler: updatedList }));
+
+        if (updatedList.length >= 2) {
+          setCompletedTools(prev => ({ ...prev, doppler: true }));
+          setActiveFindingTitle("בדיקת דופלר (הושלם 2/2)");
+          setActiveFindingText("בשמיעת דופלר נשמע גל תקין וזרימת דם שמורה בשני העורקים (DP & TP). זרימת דם אקוסטית שמורה בשתי כפות הרגליים.");
+          setTipText("כל 2 נקודות הדופלר נבדקו בהצלחה! השלב הושלם. כעת ניתן לעבור לבדיקה הבאה.");
+        } else {
+          setActiveFindingTitle("בדיקת דופלר (נבדקה 1/2 נקודות)");
+          setActiveFindingText(`נבדק גל דופלר בנקודת ${hotspotType === 'dp' ? 'גב כף הרגל (DP)' : 'הקרסול (TP)'}. יש ללחוץ על העורק השני בלוח להשלמת האומדן.`);
+          setTipText("נבדקה 1 מתוך 2 נקודות דופלר. לחץ כעת על נקודת הדופלר השנייה בלוח!");
+        }
       }
     } else if (selectedFootTool === 'monofilament') {
       if (hotspotType === 'mono') {
+        const currentList = inspectedHotspots.monofilament || [];
+        const updatedList = Array.from(new Set([...currentList, hotspotType]));
+        setInspectedHotspots(prev => ({ ...prev, monofilament: updatedList }));
+
         setCompletedTools(prev => ({ ...prev, monofilament: true }));
-        setActiveFindingTitle("בדיקת מונופילמנט 10 גרם");
+        setActiveFindingTitle("בדיקת מונופילמנט 10 גרם (הושלם)");
         setActiveFindingText("אובדן תחושה מוחלט ברוב נקודות הבדיקה במונופילמנט 10 גרם. המטופל אינו מרגיש את סיב המונופילמנט בכריות כף הרגל ובבהונות (נוירופתיה היקפית מובהקת).");
-        setTipText("אובדן תחושה מוחלט ברוב נקודות הבדיקה במונופילמנט 10 גרם. המטופל אינו מרגיש את סיב המונופילמנט בכריות כף הרגל ובבהונות (נוירופתיה היקפית מובהקת).");
-      } else {
-        setTipText("כלי זה מיועד לבדיקת מונופילמנט בנקודות התחושה בלבד.");
+        setTipText("בדיקת המונופילמנט הושלמה בהצלחה! כעת ניתן לעבור לאומדן הוויזואלי.");
       }
     } else if (selectedFootTool === 'visual') {
-      if (hotspotType === 'visual') {
-        setCompletedTools(prev => ({ ...prev, visual: true }));
-        setActiveFindingTitle("אומדן ויזואלי ומבני");
-        setActiveFindingText("עור יבש קל ופטרת בציפורניים (Onychomycosis). ללא עיוות גרמי של כף הרגל וללא כיב פעיל בהווה.");
-        setTipText("עור יבש קל ופטרת בציפורניים (Onychomycosis). ללא עיוות גרמי של כף הרגל וללא כיב פעיל בהווה.");
-      } else {
-        setTipText("לחץ על נקודת אומדן ויזואלי בעקב כדי לבצע את הבדיקה הראייתית.");
+      if (hotspotType === 'visual_heel' || hotspotType === 'visual_toes') {
+        const currentList = inspectedHotspots.visual || [];
+        const updatedList = Array.from(new Set([...currentList, hotspotType]));
+        setInspectedHotspots(prev => ({ ...prev, visual: updatedList }));
+
+        if (updatedList.length >= 2) {
+          setCompletedTools(prev => ({ ...prev, visual: true }));
+          setActiveFindingTitle("אומדן ויזואלי ומבני (הושלם 2/2)");
+          setActiveFindingText("נבדקו 2/2 אזורי אומדן ויזואלי: עור יבש קל בעקב ופטרת בציפורניים (Onychomycosis) בבהונות. ללא עיוות גרמי של כף הרגל וללא כיב פעיל בהווה.");
+          setTipText("כל 2 נקודות האומדן הוויזואלי נבדקו בהצלחה! כעת ניתן למלא את שאלון אומדן הסיכון.");
+        } else {
+          setActiveFindingTitle("אומדן ויזואלי ומבני (נבדקה 1/2 נקודות)");
+          setActiveFindingText(`נבדק אזור ${hotspotType === 'visual_heel' ? 'העקב והעור' : 'הציפורניים והבהונות'}. יש ללחוץ על הנקודה השנייה בלוח להשלמת האומדן הוויזואלי המלא.`);
+          setTipText("נבדקה 1 מתוך 2 נקודות אומדן ויזואלי. לחץ כעת על הנקודה השנייה בלוח!");
+        }
       }
     }
   };
@@ -953,90 +985,143 @@ function App() {
 
                   {/* Hotspots Overlay */}
                   {/* 1. Dorsalis Pedis Hotspot (dp) - Pulse/Doppler only */}
-                  {(selectedFootTool === 'pulses' || selectedFootTool === 'doppler') && (
-                    <button
-                      type="button"
-                      onClick={() => handleHotspotClick('dp')}
-                      className="absolute group transition-transform duration-300 hover:scale-125 focus:outline-none z-30"
-                      style={{ top: '60.5%', left: '39.5%' }}
-                    >
-                      <span className="relative flex h-8 w-8 items-center justify-center">
-                        <span className={`animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 ${
-                          selectedFootTool === 'pulses' ? 'bg-amber-400' : 'bg-sky-400'
-                        }`} />
-                        <span className={`relative inline-flex rounded-full h-4 w-4 border-2 border-white shadow-md ${
-                          selectedFootTool === 'pulses' ? 'bg-amber-500' : 'bg-sky-500'
-                        }`} />
-                      </span>
-                      <span className="absolute hidden group-hover:block bg-slate-900/90 text-white text-[9px] font-extrabold px-2 py-1 rounded shadow-lg -top-8 left-1/2 -translate-x-1/2 whitespace-nowrap z-50 transition-all">
-                        עורק גב כף הרגל (DP)
-                      </span>
-                    </button>
-                  )}
+                  {(selectedFootTool === 'pulses' || selectedFootTool === 'doppler') && (() => {
+                    const isInspected = inspectedHotspots[selectedFootTool]?.includes('dp');
+                    return (
+                      <button
+                        type="button"
+                        onClick={() => handleHotspotClick('dp')}
+                        className="absolute group transition-transform duration-300 hover:scale-125 focus:outline-none z-30"
+                        style={{ top: '60.5%', left: '39.5%' }}
+                      >
+                        <span className="relative flex h-8 w-8 items-center justify-center">
+                          {!isInspected && (
+                            <span className={`animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 ${
+                              selectedFootTool === 'pulses' ? 'bg-amber-400' : 'bg-sky-400'
+                            }`} />
+                          )}
+                          <span className={`relative inline-flex rounded-full h-5 w-5 border-2 border-white shadow-md items-center justify-center text-white text-[10px] font-black ${
+                            isInspected ? 'bg-emerald-500' : selectedFootTool === 'pulses' ? 'bg-amber-500' : 'bg-sky-500'
+                          }`}>
+                            {isInspected ? '✓' : ''}
+                          </span>
+                        </span>
+                        <span className="absolute hidden group-hover:block bg-slate-900/90 text-white text-[9px] font-extrabold px-2 py-1 rounded shadow-lg -top-8 left-1/2 -translate-x-1/2 whitespace-nowrap z-50 transition-all">
+                          עורק גב כף הרגל (DP) {isInspected ? '(נבדק ✓)' : ''}
+                        </span>
+                      </button>
+                    );
+                  })()}
 
                   {/* 2. Tibialis Posterior Hotspot (tp) - Pulse/Doppler only */}
-                  {(selectedFootTool === 'pulses' || selectedFootTool === 'doppler') && (
-                    <button
-                      type="button"
-                      onClick={() => handleHotspotClick('tp')}
-                      className="absolute group transition-transform duration-300 hover:scale-125 focus:outline-none z-30"
-                      style={{ top: '53.6%', left: '62.7%' }}
-                    >
-                      <span className="relative flex h-8 w-8 items-center justify-center">
-                        <span className={`animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 ${
-                          selectedFootTool === 'pulses' ? 'bg-amber-400' : 'bg-sky-400'
-                        }`} />
-                        <span className={`relative inline-flex rounded-full h-4 w-4 border-2 border-white shadow-md ${
-                          selectedFootTool === 'pulses' ? 'bg-amber-500' : 'bg-sky-500'
-                        }`} />
-                      </span>
-                      <span className="absolute hidden group-hover:block bg-slate-900/90 text-white text-[9px] font-extrabold px-2 py-1 rounded shadow-lg -top-8 left-1/2 -translate-x-1/2 whitespace-nowrap z-50 transition-all">
-                        עורק הקרסול האחורי (TP)
-                      </span>
-                    </button>
-                  )}
+                  {(selectedFootTool === 'pulses' || selectedFootTool === 'doppler') && (() => {
+                    const isInspected = inspectedHotspots[selectedFootTool]?.includes('tp');
+                    return (
+                      <button
+                        type="button"
+                        onClick={() => handleHotspotClick('tp')}
+                        className="absolute group transition-transform duration-300 hover:scale-125 focus:outline-none z-30"
+                        style={{ top: '53.6%', left: '62.7%' }}
+                      >
+                        <span className="relative flex h-8 w-8 items-center justify-center">
+                          {!isInspected && (
+                            <span className={`animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 ${
+                              selectedFootTool === 'pulses' ? 'bg-amber-400' : 'bg-sky-400'
+                            }`} />
+                          )}
+                          <span className={`relative inline-flex rounded-full h-5 w-5 border-2 border-white shadow-md items-center justify-center text-white text-[10px] font-black ${
+                            isInspected ? 'bg-emerald-500' : selectedFootTool === 'pulses' ? 'bg-amber-500' : 'bg-sky-500'
+                          }`}>
+                            {isInspected ? '✓' : ''}
+                          </span>
+                        </span>
+                        <span className="absolute hidden group-hover:block bg-slate-900/90 text-white text-[9px] font-extrabold px-2 py-1 rounded shadow-lg -top-8 left-1/2 -translate-x-1/2 whitespace-nowrap z-50 transition-all">
+                          עורק הקרסול האחורי (TP) {isInspected ? '(נבדק ✓)' : ''}
+                        </span>
+                      </button>
+                    );
+                  })()}
 
                   {/* 3. Monofilament Hotspot (mono) - Sensation only (plantar/bottom edge) */}
-                  {selectedFootTool === 'monofilament' && (
-                    <button
-                      type="button"
-                      onClick={() => handleHotspotClick('mono')}
-                      className="absolute group transition-transform duration-300 hover:scale-125 focus:outline-none z-30"
-                      style={{ top: '76.7%', left: '28.9%' }}
-                    >
-                      <span className="relative flex h-8 w-8 items-center justify-center">
-                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 bg-rose-400" />
-                        <span className="relative inline-flex rounded-full h-4 w-4 border-2 border-white shadow-md bg-rose-500 animate-pulse" />
-                      </span>
-                      <span className="absolute hidden group-hover:block bg-slate-900/90 text-white text-[9px] font-extrabold px-2 py-1 rounded shadow-lg -top-8 left-1/2 -translate-x-1/2 whitespace-nowrap z-50 transition-all">
-                        נקודת בדיקת תחושה (סוליה/כף רגל תחתונה)
-                      </span>
-                    </button>
-                  )}
+                  {selectedFootTool === 'monofilament' && (() => {
+                    const isInspected = inspectedHotspots.monofilament?.includes('mono');
+                    return (
+                      <button
+                        type="button"
+                        onClick={() => handleHotspotClick('mono')}
+                        className="absolute group transition-transform duration-300 hover:scale-125 focus:outline-none z-30"
+                        style={{ top: '76.7%', left: '28.9%' }}
+                      >
+                        <span className="relative flex h-8 w-8 items-center justify-center">
+                          {!isInspected && <span className="animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 bg-rose-400" />}
+                          <span className={`relative inline-flex rounded-full h-5 w-5 border-2 border-white shadow-md items-center justify-center text-white text-[10px] font-black ${
+                            isInspected ? 'bg-emerald-500' : 'bg-rose-500 animate-pulse'
+                          }`}>
+                            {isInspected ? '✓' : ''}
+                          </span>
+                        </span>
+                        <span className="absolute hidden group-hover:block bg-slate-900/90 text-white text-[9px] font-extrabold px-2 py-1 rounded shadow-lg -top-8 left-1/2 -translate-x-1/2 whitespace-nowrap z-50 transition-all">
+                          נקודת בדיקת תחושה (סוליה/כף רגל תחתונה) {isInspected ? '(נבדק ✓)' : ''}
+                        </span>
+                      </button>
+                    );
+                  })()}
 
-                  {/* 4. Visual Inspection Hotspot (visual) - Skin/callus only (heel profile) */}
-                  {selectedFootTool === 'visual' && (
-                    <button
-                      type="button"
-                      onClick={() => handleHotspotClick('visual')}
-                      className="absolute group transition-transform duration-300 hover:scale-125 focus:outline-none z-30"
-                      style={{ top: '78%', left: '68%' }}
-                    >
-                      <span className="relative flex h-8 w-8 items-center justify-center">
-                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 bg-orange-400" />
-                        <span className="relative inline-flex rounded-full h-4 w-4 border-2 border-white shadow-md bg-orange-500 animate-pulse" />
-                      </span>
-                      <span className="absolute hidden group-hover:block bg-slate-900/90 text-white text-[9px] font-extrabold px-2 py-1 rounded shadow-lg -top-8 left-1/2 -translate-x-1/2 whitespace-nowrap z-50 transition-all">
-                        אומדן יבלות ועור (עקב)
-                      </span>
-                    </button>
-                  )}
+                  {/* 4. Visual Inspection Hotspot 1 (visual_heel) - Heel & skin profile */}
+                  {selectedFootTool === 'visual' && (() => {
+                    const isInspected = inspectedHotspots.visual?.includes('visual_heel');
+                    return (
+                      <button
+                        type="button"
+                        onClick={() => handleHotspotClick('visual_heel')}
+                        className="absolute group transition-transform duration-300 hover:scale-125 focus:outline-none z-30"
+                        style={{ top: '78%', left: '68%' }}
+                      >
+                        <span className="relative flex h-8 w-8 items-center justify-center">
+                          {!isInspected && <span className="animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 bg-orange-400" />}
+                          <span className={`relative inline-flex rounded-full h-5 w-5 border-2 border-white shadow-md items-center justify-center text-white text-[10px] font-black ${
+                            isInspected ? 'bg-emerald-500' : 'bg-orange-500 animate-pulse'
+                          }`}>
+                            {isInspected ? '✓' : ''}
+                          </span>
+                        </span>
+                        <span className="absolute hidden group-hover:block bg-slate-900/90 text-white text-[9px] font-extrabold px-2 py-1 rounded shadow-lg -top-8 left-1/2 -translate-x-1/2 whitespace-nowrap z-50 transition-all">
+                          אומדן עור ועקב {isInspected ? '(נבדק ✓)' : '(נקודה 1/2)'}
+                        </span>
+                      </button>
+                    );
+                  })()}
+
+                  {/* 5. Visual Inspection Hotspot 2 (visual_toes) - Toes & nails profile */}
+                  {selectedFootTool === 'visual' && (() => {
+                    const isInspected = inspectedHotspots.visual?.includes('visual_toes');
+                    return (
+                      <button
+                        type="button"
+                        onClick={() => handleHotspotClick('visual_toes')}
+                        className="absolute group transition-transform duration-300 hover:scale-125 focus:outline-none z-30"
+                        style={{ top: '68%', left: '25%' }}
+                      >
+                        <span className="relative flex h-8 w-8 items-center justify-center">
+                          {!isInspected && <span className="animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 bg-orange-400" />}
+                          <span className={`relative inline-flex rounded-full h-5 w-5 border-2 border-white shadow-md items-center justify-center text-white text-[10px] font-black ${
+                            isInspected ? 'bg-emerald-500' : 'bg-orange-500 animate-pulse'
+                          }`}>
+                            {isInspected ? '✓' : ''}
+                          </span>
+                        </span>
+                        <span className="absolute hidden group-hover:block bg-slate-900/90 text-white text-[9px] font-extrabold px-2 py-1 rounded shadow-lg -top-8 left-1/2 -translate-x-1/2 whitespace-nowrap z-50 transition-all">
+                          אומדן ציפורניים ובהונות {isInspected ? '(נבדק ✓)' : '(נקודה 2/2)'}
+                        </span>
+                      </button>
+                    );
+                  })()}
 
                   {/* Elegant Instruction Banner when active tool is 'visual' */}
                   {selectedFootTool === 'visual' && (
                     <div className="absolute top-4 left-4 right-4 bg-orange-600/95 text-white p-3 rounded-xl shadow-lg border border-orange-400 flex items-center justify-between animate-fade-in z-20">
-                      <span className="text-[10px] font-black text-orange-100 block">אומדן ויזואלי ומבני פעיל</span>
-                      <span className="text-[11px] font-bold text-white text-right">לחץ על נקודת העקב הכתומה כדי לבחון יבלות ועור.</span>
+                      <span className="text-[10px] font-black text-orange-100 block">אומדן ויזואלי ומבני פעיל ({inspectedHotspots.visual?.length || 0}/2 נקודות)</span>
+                      <span className="text-[11px] font-bold text-white text-right">לחץ על 2 נקודות האומדן הכתומיות בלוח (עקב וציפורניים) כדי לבצע את האומדן.</span>
                     </div>
                   )}
 
