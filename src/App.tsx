@@ -16,7 +16,10 @@ import {
   Heart,
   CheckCircle2,
   Volume2,
-  Info
+  Info,
+  Clock,
+  AlertCircle,
+  CheckCircle
 } from 'lucide-react';
 
 function App() {
@@ -66,6 +69,11 @@ function App() {
   const [part1IsValid, setPart1IsValid] = useState(false);
   const [part2Choice, setPart2Choice] = useState<'sglt2' | 'glp1' | 'hybrid' | null>(null);
   const [part2Checklist, setPart2Checklist] = useState<Record<string, boolean>>({});
+
+  // Phase 5: Counselling & 3-Month Follow-Up states
+  const [counsellingTargetAnswer, setCounsellingTargetAnswer] = useState<'yes' | 'no' | null>(null);
+  const [counsellingSecondLineChoice, setCounsellingSecondLineChoice] = useState<string | null>(null);
+  const [counsellingChecklist, setCounsellingChecklist] = useState<Record<string, boolean>>({});
 
   const allQuestionsAsked = state.askedQuestions.length === patientCase1.anamnesisOptions.length;
 
@@ -1857,38 +1865,312 @@ function App() {
         </div>
       )}
 
-      {/* 5. Counselling / Follow-up Phase (Hebrew Placeholder Shell) */}
-      {state.currentPhase === 'counselling' && (
-        <div className="space-y-8 animate-all duration-300 text-right">
-          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between border-b border-slate-100 pb-6">
-            <div>
-              <span className="inline-flex items-center space-x-1.5 space-x-reverse rounded-full bg-violet-50 px-3 py-1 text-xs font-semibold text-violet-700">
-                <Users className="h-3 w-3 text-violet-500" />
-                <span>הדרכת מטופל ותמיכה</span>
-              </span>
-              <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900 mt-2 font-sans">
-                ראיון מוטיבציוני ושמירה על הרגליים
-              </h2>
-            </div>
-            <div className="flex flex-wrap gap-2 space-x-reverse mt-4 sm:mt-0">
-              <button onClick={() => setPhase('treatment')} className="premium-btn-secondary py-2 text-xs w-full sm:w-auto">
-                חזרה לטיפול
-              </button>
-              <button onClick={() => setPhase('feedback')} className="premium-btn-primary py-2 text-xs w-full sm:w-auto">
-                הערכה סופית
-              </button>
-            </div>
-          </div>
+      {/* 5. Counselling / 3-Month Follow-up & Sequential Titration Phase */}
+      {state.currentPhase === 'counselling' && (() => {
+        // Determine primary branch (if user selected glp1 initially vs sglt2 or default)
+        const isGlp1Initial = part2Choice === 'glp1';
+        
+        // 3-Month Labs & Clinical Data according to initial branch
+        const followUpLabs = isGlp1Initial ? {
+          hba1c: '7.2%',
+          hba1cBadge: 'שיפור מ-8.9%, עדיין מעל היעד (< 7.0%)',
+          egfr: '73 mL/min/1.73m²',
+          egfrBadge: 'עלייה קלה מ-72, מתחת ל-60/90 (Stage 2 CKD)',
+          acr: '140 mg/g',
+          acrBadge: 'ללא שינוי ממעבדה קודמת',
+          statusDesc: 'ארתור מגיע לביקורת מעקב לאחר 3 חודשי טיפול באנלוג GLP-1 (Ozempic). הוא עלה במינון ה-GLP-1 בהדרגה בהתאם להנחיות, ללא תופעות לוואי משמעותיות במערכת העיכול (ללא בחילות או הקאות קשות).'
+        } : {
+          hba1c: '7.6%',
+          hba1cBadge: 'שיפור מ-8.9%, מעל היעד המבוקש (< 7.0%)',
+          egfr: '74 mL/min/1.73m²',
+          egfrBadge: 'עלייה קלה מ-72, מתחת ל-60/90 (Stage 2 CKD)',
+          acr: '140 mg/g',
+          acrBadge: 'ללא שינוי ממעבדה קודמת',
+          statusDesc: 'ארתור מגיע לביקורת מעקב לאחר 3 חודשי טיפול במעכב SGLT2 (Jardiance 10mg) לצד מטפורמין. הוא מדווח על היענות מצוינת להנחיות השתייה וההיגיינה, ללא זיהומים פטרייתיים בדרכי השתן.'
+        };
 
-          <div className="p-4 sm:p-8 border border-slate-100 bg-slate-50/40 rounded-3xl text-center space-y-4">
-            <HelpCircle className="h-12 w-12 text-slate-400 mx-auto" />
-            <h3 className="text-xl font-bold text-slate-800">סביבת עבודה לייעוץ והדרכה</h3>
-            <p className="text-sm text-slate-500 max-w-md mx-auto">
-              בשלב הבא, תבנה תוכנית הסברה ולימוד הממוקדת בבדיקה עצמית של כפות הרגליים, ניהול תזונה תחת סדר יום לחוץ, ומציאת מנגנונים תומכים למניעת שכחת תרופות בערב.
-            </p>
+        const targetQuestionText = isGlp1Initial 
+          ? 'האם האיזון הגליקמי כעת מספק?' 
+          : 'האם המטופל הגיע ליעד האיזון הגליקמי המבוקש עבורו?';
+
+        const secondLineQuestionText = isGlp1Initial
+          ? 'מהי תרופת הבחירה המועדפת כעת להשלמת התוכנית והגנה כלייתית נוספת?'
+          : 'מהי תוספת הטיפול המועדפת כעת להשגת יעד האיזון והגנה קרדיו-מטבולית נוספת?';
+
+        const requiredChecklistItems = isGlp1Initial ? [
+          { id: 'hygiene', text: 'הדרכה קפדנית על היגיינה אישית ואינטימית למניעת זיהומים פטרייתיים בדרכי השתן (עקב גליקוזוריה).' },
+          { id: 'hydration', text: 'הסבר על חשיבות השתייה המרובה ומניעת התייבשות (אפקט משתן מתון).' },
+          { id: 'sickdays', text: 'הדרכה על "חוקי ימי מחלה" (Sick Day Rules) - הפסקה זמנית של התרופה במצבים של שלשול, הקאה או צום לצורך מניעת eDKA.' },
+          { id: 'labs', text: 'ניטור תקופתי של תפקודי כליות (Serum Creatinine, eGFR) ואלקטרוליטים.' },
+          { id: 'bp', text: 'ניטור הדוק של לחצי דם עקב אפקט סינרגיסטי להורדת לחץ דם בשילוב עם רמיפריל.' }
+        ] : [
+          { id: 'eyecare', text: 'וידוא בדיקת רופא עיניים (קרקעית עין) בשנה האחרונה ושלילת רטינופתיה סוכרתית המצריכה טיפול (איזון גליקמי מהיר תחת GLP-1 עלול להחמיר רטינופתיה).' },
+          { id: 'technique', text: 'הדרכה ותרגול טכניקת הזרקה תת-עורית (Subcutaneous Injection) פעם בשבוע.' },
+          { id: 'gi', text: 'הסבר מפורט על תופעות לוואי במערכת העיכול (בחילות) וחשיבות העלייה ההדרגתית במינון (Titration).' },
+          { id: 'meals', text: 'הנחיה לאכילת ארוחות קטנות יותר והפסקת אכילה ברגע שמרגישים מלאים למניעת בחילות או הקאות.' },
+          { id: 'pancreatitis', text: 'מעקב אחר תסמינים מחשידים לדלקת לבלב (פנקריאטיטיס) - כאב בטן חריף מקרין לגב.' },
+          { id: 'followup', text: 'בניית תוכנית מעקב אחר הסתגלות המטופל לטיפול ולתופעות הלוואי.' }
+        ];
+
+        const isChecklistComplete = requiredChecklistItems.every(item => !!counsellingChecklist[item.id]);
+
+        return (
+          <div className="space-y-8 animate-all duration-300 text-right">
+            {/* Header */}
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between border-b border-slate-100 pb-6">
+              <div>
+                <span className="inline-flex items-center space-x-1.5 space-x-reverse rounded-full bg-violet-50 px-3 py-1 text-xs font-semibold text-violet-700">
+                  <Clock className="h-3 w-3 text-violet-500" />
+                  <span>מעקב 3 חודשים והערכת טיפול משלים</span>
+                </span>
+                <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900 mt-2 font-sans">
+                  ביקורת קלינית: הערכת מעבדה והרחבת הטיפול
+                </h2>
+              </div>
+              <div className="flex flex-wrap gap-2 space-x-reverse mt-4 sm:mt-0">
+                <button onClick={() => setPhase('treatment')} className="premium-btn-secondary py-2 text-xs w-full sm:w-auto">
+                  חזרה לשלב 4
+                </button>
+              </div>
+            </div>
+
+            {/* 3-Month Clinical Overview Card */}
+            <div className="bg-gradient-to-br from-slate-900 via-slate-800 to-sky-950 text-white rounded-3xl p-6 sm:p-8 shadow-xl space-y-6">
+              <div className="flex items-center space-x-3 space-x-reverse">
+                <div className="p-3 bg-sky-500/20 border border-sky-400/30 rounded-2xl">
+                  <Activity className="h-6 w-6 text-sky-400" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-extrabold text-white">תמונת מצב קלינית – ביקורת מעקב (3 חודשים)</h3>
+                  <p className="text-xs text-sky-200 font-medium mt-0.5">ניטור תגובה טיפולית ובדיקות דם חוזרות</p>
+                </div>
+              </div>
+
+              <p className="text-sm text-slate-200 leading-relaxed bg-white/5 border border-white/10 p-4 rounded-2xl">
+                {followUpLabs.statusDesc}
+              </p>
+
+              {/* Lab metrics grid */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-2">
+                <div className="bg-slate-800/80 border border-slate-700 rounded-2xl p-4 space-y-1">
+                  <span className="text-xs text-slate-400 font-medium">HbA1c נוכחי:</span>
+                  <div className="text-2xl font-black text-amber-400">{followUpLabs.hba1c}</div>
+                  <span className="text-[11px] text-amber-300/80 font-medium block">{followUpLabs.hba1cBadge}</span>
+                </div>
+                <div className="bg-slate-800/80 border border-slate-700 rounded-2xl p-4 space-y-1">
+                  <span className="text-xs text-slate-400 font-medium">eGFR (CKD-EPI):</span>
+                  <div className="text-2xl font-black text-sky-400">{followUpLabs.egfr}</div>
+                  <span className="text-[11px] text-sky-300/80 font-medium block">{followUpLabs.egfrBadge}</span>
+                </div>
+                <div className="bg-slate-800/80 border border-slate-700 rounded-2xl p-4 space-y-1">
+                  <span className="text-xs text-slate-400 font-medium">ACR (יחס אלבומין/קריאטינין):</span>
+                  <div className="text-2xl font-black text-emerald-400">{followUpLabs.acr}</div>
+                  <span className="text-[11px] text-emerald-300/80 font-medium block">{followUpLabs.acrBadge}</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Step 1: Target Assessment Question */}
+            <div className="bg-white border border-slate-200 rounded-3xl p-6 sm:p-8 space-y-6 shadow-sm">
+              <div className="flex items-center space-x-3 space-x-reverse border-b border-slate-100 pb-4">
+                <div className="p-2.5 bg-violet-100 text-violet-700 rounded-2xl">
+                  <HelpCircle className="h-5 w-5" />
+                </div>
+                <h3 className="text-lg font-bold text-slate-900">{targetQuestionText}</h3>
+              </div>
+
+              <div className="flex gap-4">
+                <button
+                  type="button"
+                  onClick={() => setCounsellingTargetAnswer('yes')}
+                  className={`flex-1 py-4 px-6 rounded-2xl border font-bold text-sm transition-all duration-200 ${
+                    counsellingTargetAnswer === 'yes'
+                      ? 'border-rose-500 bg-rose-50/50 text-rose-800 ring-2 ring-rose-500/20'
+                      : 'border-slate-200 bg-slate-50/50 hover:bg-slate-100 text-slate-700'
+                  }`}
+                >
+                  כן
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setCounsellingTargetAnswer('no')}
+                  className={`flex-1 py-4 px-6 rounded-2xl border font-bold text-sm transition-all duration-200 ${
+                    counsellingTargetAnswer === 'no'
+                      ? 'border-emerald-500 bg-emerald-50/50 text-emerald-800 ring-2 ring-emerald-500/20'
+                      : 'border-slate-200 bg-slate-50/50 hover:bg-slate-100 text-slate-700'
+                  }`}
+                >
+                  לא
+                </button>
+              </div>
+
+              {/* Target Assessment Feedback */}
+              {counsellingTargetAnswer === 'yes' && (
+                <div className="p-5 rounded-2xl bg-amber-50 border border-amber-200 text-amber-900 text-xs font-semibold leading-relaxed flex items-start space-x-3 space-x-reverse">
+                  <AlertCircle className="h-5 w-5 text-amber-600 shrink-0 mt-0.5" />
+                  <div>
+                    <span className="font-extrabold block text-sm mb-1">חשבי שנית...</span>
+                    רמת HbA1c של {followUpLabs.hba1c} אמנם מציגה שיפור יפה לעומת 8.9%, אך אינה עומדת ביעד הטיפולי המומלץ עבור ארתור (HbA1c &lt; 7.0%, ואף שאיפה לפחות מ-6.5% במידה וניתן להגיע לכך בבטחה). מכיוון שגם מעכבי SGLT2 וגם אנלוגים ל-GLP-1 אינם גורמים להיפוגליקמיה (אינם תלויים בהפרשת אינסולין כפויה), שאפתנות גליקמית הינה בטוחה ומומלצת.
+                  </div>
+                </div>
+              )}
+
+              {counsellingTargetAnswer === 'no' && (
+                <div className="p-5 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-900 text-xs font-semibold leading-relaxed flex items-start space-x-3 space-x-reverse animate-all duration-300">
+                  <CheckCircle className="h-5 w-5 text-emerald-600 shrink-0 mt-0.5" />
+                  <div>
+                    <span className="font-extrabold block text-sm mb-1">תשובה מדויקת קלינית!</span>
+                    רמת HbA1c של {followUpLabs.hba1c} אינה מגיעה ליעד הטיפולי המבוקש (&lt; 7.0%, ועדיף אף פחות מ-6.5% במידה וניתן להגיע לכך בבטחה). עקב הפרופיל הבטוח של תרופות אלו מסיכון להיפוגליקמיה (SGLT2i ו-GLP-1 RA אינם גורמים להיפוגליקמיה כטיפול יחיד או בשילוב עם מטפורמין), מומלץ להשלים כעת את הטיפול עם התרופה המשלימה.
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Step 2: Second-Line Drug Selection (Unlocked when Target Assessment is 'no') */}
+            {counsellingTargetAnswer === 'no' && (
+              <div className="bg-white border border-slate-200 rounded-3xl p-6 sm:p-8 space-y-6 shadow-sm animate-all duration-300">
+                <div className="flex items-center space-x-3 space-x-reverse border-b border-slate-100 pb-4">
+                  <div className="p-2.5 bg-sky-100 text-sky-700 rounded-2xl">
+                    <Sparkles className="h-5 w-5" />
+                  </div>
+                  <h3 className="text-lg font-bold text-slate-900">{secondLineQuestionText}</h3>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  {[
+                    { id: 'glp1', title: 'אנלוגים ל-GLP-1 (Ozempic / Trulicity)', isCorrect: !isGlp1Initial },
+                    { id: 'sglt2', title: 'מעכבי SGLT2 (Jardiance / Forxiga)', isCorrect: isGlp1Initial },
+                    { id: 'insulin', title: 'אינסולין (Insulin therapy)', isCorrect: false },
+                    { id: 'sulfonylurea', title: 'סולפוניל-אוריאה (Sulfonureas)', isCorrect: false }
+                  ].map((option) => {
+                    const isSelected = counsellingSecondLineChoice === option.id;
+                    return (
+                      <button
+                        key={option.id}
+                        type="button"
+                        onClick={() => {
+                          setCounsellingSecondLineChoice(option.id);
+                          setCounsellingChecklist({}); // Reset checklist when switching drug selection
+                        }}
+                        className={`p-5 rounded-2xl border text-right font-bold text-sm transition-all duration-200 ${
+                          isSelected
+                            ? option.isCorrect
+                              ? 'border-emerald-500 bg-emerald-50/50 text-emerald-900 ring-2 ring-emerald-500/20'
+                              : 'border-rose-500 bg-rose-50/50 text-rose-900 ring-2 ring-rose-500/20'
+                            : 'border-slate-200 bg-slate-50/40 hover:bg-slate-100 text-slate-800'
+                        }`}
+                      >
+                        {option.title}
+                      </button>
+                    );
+                  })}
+                </div>
+
+                {/* Feedback for Drug Choice */}
+                {counsellingSecondLineChoice && (
+                  <div>
+                    {((isGlp1Initial && counsellingSecondLineChoice === 'sglt2') || (!isGlp1Initial && counsellingSecondLineChoice === 'glp1')) ? (
+                      <div className="p-5 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-900 text-xs font-semibold leading-relaxed flex items-start space-x-3 space-x-reverse animate-all duration-300">
+                        <CheckCircle className="h-5 w-5 text-emerald-600 shrink-0 mt-0.5" />
+                        <div>
+                          <span className="font-extrabold block text-sm mb-1">בחירה קלינית מושלמת!</span>
+                          {isGlp1Initial 
+                            ? "הוספת מעכב SGLT2 כעת מעניקה לארתור הגנה כלייתית (Renoprotection) ישירה ומבוססת ל-ACR 140 mg/g שלו, מפחיתה עומס תוך-גלומרולרי, ומביאה את רמת ה-HbA1c אל מתחת ל-7.0% בבטחה."
+                            : "הוספת GLP-1 RA כעת מעניקה לארתור ירידה משמעותית במשקל (BMI 30.9), משלימה את האיזון הגליקמי אל מתחת ל-7.0%, ומעניקה הגנה קרדיווסקולרית מקיפה לצד ה-SGLT2i."}
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="p-5 rounded-2xl bg-rose-50 border border-rose-200 text-rose-900 text-xs font-semibold leading-relaxed flex items-start space-x-3 space-x-reverse animate-all duration-300">
+                        <AlertCircle className="h-5 w-5 text-rose-600 shrink-0 mt-0.5" />
+                        <div>
+                          <span className="font-extrabold block text-sm mb-1">תרופה אינה מומלצת כעת</span>
+                          {counsellingSecondLineChoice === 'insulin' || counsellingSecondLineChoice === 'sulfonylurea'
+                            ? "תרופה זו מעלה סיכון להיפוגליקמיה ואינה מעניקה את ההגנה האיבר-מטרה הנדרשת. ההנחיות המודרניות ממליצות לשלב SGLT2i ו-GLP-1 RA לפני שקול טיפול המשרה היפוגליקמיה."
+                            : "תרופה זו כבר הותחלה בקו הראשון. כעת יש להוסיף את התרופה המשלימה מהמשפחה השנייה."}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Step 3: Complementary Drug Checklist (Unlocked when correct 2nd-line drug chosen) */}
+            {counsellingTargetAnswer === 'no' && 
+             ((isGlp1Initial && counsellingSecondLineChoice === 'sglt2') || (!isGlp1Initial && counsellingSecondLineChoice === 'glp1')) && (
+              <div className="bg-white border border-slate-200 rounded-3xl p-6 sm:p-8 space-y-6 shadow-sm animate-all duration-300">
+                <div className="flex items-center space-x-3 space-x-reverse border-b border-slate-100 pb-4">
+                  <div className="p-2.5 bg-sky-100 text-sky-700 rounded-2xl">
+                    <FileText className="h-5 w-5" />
+                  </div>
+                  <h3 className="text-lg font-bold text-slate-900">
+                    צ'קליסט התערבויות סיעודיות להוספת {isGlp1Initial ? 'SGLT2 (יש לאשר 5 סעיפים)' : 'GLP-1 (יש לאשר 6 סעיפים)'}:
+                  </h3>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {requiredChecklistItems.map((item) => {
+                    const isChecked = !!counsellingChecklist[item.id];
+                    return (
+                      <button
+                        key={item.id}
+                        type="button"
+                        onClick={() => {
+                          setCounsellingChecklist(prev => ({ ...prev, [item.id]: !prev[item.id] }));
+                        }}
+                        className={`flex text-right items-start space-x-3 space-x-reverse p-4 rounded-2xl border transition-all duration-300 ${
+                          isChecked 
+                            ? 'border-sky-500 bg-sky-50/20 text-slate-800 shadow-sm' 
+                            : 'border-slate-100 bg-slate-50/30 text-slate-650 hover:border-slate-200'
+                        }`}
+                      >
+                        <div className={`h-5 w-5 rounded border flex items-center justify-center shrink-0 mt-0.5 transition-all duration-300 ${
+                          isChecked ? 'bg-sky-500 border-sky-500 text-white' : 'border-slate-300 bg-white'
+                        }`}>
+                          {isChecked && (
+                            <svg className="h-3 w-3 fill-current" viewBox="0 0 20 20">
+                              <path d="M0 11l2-2 5 5L18 3l2 2L7 18z"/>
+                            </svg>
+                          )}
+                        </div>
+                        <span className="text-xs font-semibold leading-relaxed">{item.text}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+
+                {/* Complete Action Panel for Phase 5 */}
+                {isChecklistComplete && (
+                  <div className="flex justify-center pt-6 border-t border-slate-100 animate-all duration-300">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setState(prev => {
+                          const newAccuracy = Math.min(100, prev.scores.accuracy + 10);
+                          const newAlliance = Math.min(100, prev.scores.alliance + 10);
+                          return {
+                            ...prev,
+                            scores: {
+                              ...prev.scores,
+                              accuracy: newAccuracy,
+                              alliance: newAlliance,
+                            }
+                          };
+                        });
+                        setPhase('feedback');
+                      }}
+                      className="premium-btn-primary px-8 py-3.5 text-sm flex items-center space-x-2 space-x-reverse shadow-lg hover:shadow-sky-200/50 hover:scale-105 active:scale-95 animate-bounce"
+                    >
+                      <span>סיום הסימולציה ומעבר להערכה סופית</span>
+                      <ArrowLeft className="h-4 w-4" />
+                    </button>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
-        </div>
-      )}
+        );
+      })()}
 
       {/* 6. Final Review / Feedback Phase (Hebrew Placeholder Shell) */}
       {state.currentPhase === 'feedback' && (
