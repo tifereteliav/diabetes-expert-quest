@@ -1795,7 +1795,8 @@ function App() {
                           { id: 'technique', text: 'הדרכה ותרגול טכניקת הזרקה תת-עורית (Subcutaneous Injection) פעם בשבוע.' },
                           { id: 'gi', text: 'הסבר מפורט על תופעות לוואי במערכת העיכול (בחילות) וחשיבות העלייה ההדרגתית במינון (Titration).' },
                           { id: 'meals', text: 'הנחיה לאכילת ארוחות קטנות יותר והפסקת אכילה ברגע שמרגישים מלאים למניעת בחילות או הקאות.' },
-                          { id: 'pancreatitis', text: 'מעקב אחר תסמינים מחשידים לדלקת לבלב (פנקריאטיטיס) - כאב בטן חריף מקרין לגב.' },
+                          { id: 'pancreatitis', text: 'מעקב אחר תסמינים מחשידים לדלקת לבלב (פנקריאטיטיס) - כאב בטן חריף מקרין לגב, ויש לבדוק רמות טריגליצרידים לפני התחלת הטיפול.' },
+                          { id: 'dietitian', text: 'הפנייה לדיאטנית והמלצה לשילוב אימוני התנגדות בהתאם למסוגלות של המטופל.' },
                           { id: 'followup', text: 'בניית תוכנית מעקב אחר הסתגלות המטופל לטיפול ולתופעות הלוואי.' }
                         ]).map((item) => {
                           const isChecked = !!part2Checklist[item.id];
@@ -1831,7 +1832,7 @@ function App() {
 
                   {/* Complete Action Panel */}
                   {((part2Choice === 'sglt2' && Object.values(part2Checklist).filter(Boolean).length === 5) ||
-                    (part2Choice === 'glp1' && Object.values(part2Checklist).filter(Boolean).length === 6)) && (
+                    (part2Choice === 'glp1' && Object.values(part2Checklist).filter(Boolean).length === 7)) && (
                     <div className="flex justify-center pt-4 border-t border-slate-100 animate-all duration-300">
                       <button
                         type="button"
@@ -1875,7 +1876,7 @@ function App() {
           hba1c: '7.2%',
           hba1cBadge: 'שיפור מ-8.9%, עדיין מעל היעד (< 7.0%)',
           egfr: '73 mL/min/1.73m²',
-          egfrBadge: 'עלייה קלה מ-72, מתחת ל-60/90 (Stage 2 CKD)',
+          egfrBadge: 'עלייה קלה מ-72',
           acr: '140 mg/g',
           acrBadge: 'ללא שינוי ממעבדה קודמת',
           statusDesc: 'ארתור מגיע לביקורת מעקב לאחר 3 חודשי טיפול באנלוג GLP-1 (Ozempic). הוא עלה במינון ה-GLP-1 בהדרגה בהתאם להנחיות, ללא תופעות לוואי משמעותיות במערכת העיכול (ללא בחילות או הקאות קשות).'
@@ -1883,7 +1884,7 @@ function App() {
           hba1c: '7.6%',
           hba1cBadge: 'שיפור מ-8.9%, מעל היעד המבוקש (< 7.0%)',
           egfr: '74 mL/min/1.73m²',
-          egfrBadge: 'עלייה קלה מ-72, מתחת ל-60/90 (Stage 2 CKD)',
+          egfrBadge: 'עלייה קלה מ-72',
           acr: '140 mg/g',
           acrBadge: 'ללא שינוי ממעבדה קודמת',
           statusDesc: 'ארתור מגיע לביקורת מעקב לאחר 3 חודשי טיפול במעכב SGLT2 (Jardiance 10mg) לצד מטפורמין. הוא מדווח על היענות מצוינת להנחיות השתייה וההיגיינה, ללא זיהומים פטרייתיים בדרכי השתן.'
@@ -1908,7 +1909,8 @@ function App() {
           { id: 'technique', text: 'הדרכה ותרגול טכניקת הזרקה תת-עורית (Subcutaneous Injection) פעם בשבוע.' },
           { id: 'gi', text: 'הסבר מפורט על תופעות לוואי במערכת העיכול (בחילות) וחשיבות העלייה ההדרגתית במינון (Titration).' },
           { id: 'meals', text: 'הנחיה לאכילת ארוחות קטנות יותר והפסקת אכילה ברגע שמרגישים מלאים למניעת בחילות או הקאות.' },
-          { id: 'pancreatitis', text: 'מעקב אחר תסמינים מחשידים לדלקת לבלב (פנקריאטיטיס) - כאב בטן חריף מקרין לגב.' },
+          { id: 'pancreatitis', text: 'מעקב אחר תסמינים מחשידים לדלקת לבלב (פנקריאטיטיס) - כאב בטן חריף מקרין לגב, ויש לבדוק רמות טריגליצרידים לפני התחלת הטיפול.' },
+          { id: 'dietitian', text: 'הפנייה לדיאטנית והמלצה לשילוב אימוני התנגדות בהתאם למסוגלות של המטופל.' },
           { id: 'followup', text: 'בניית תוכנית מעקב אחר הסתגלות המטופל לטיפול ולתופעות הלוואי.' }
         ];
 
@@ -2104,7 +2106,7 @@ function App() {
                     <FileText className="h-5 w-5" />
                   </div>
                   <h3 className="text-lg font-bold text-slate-900">
-                    צ'קליסט התערבויות סיעודיות להוספת {isGlp1Initial ? 'SGLT2 (יש לאשר 5 סעיפים)' : 'GLP-1 (יש לאשר 6 סעיפים)'}:
+                    צ'קליסט התערבויות סיעודיות להוספת {isGlp1Initial ? 'SGLT2 (יש לאשר 5 סעיפים)' : 'GLP-1 (יש לאשר 7 סעיפים)'}:
                   </h3>
                 </div>
 
@@ -2172,39 +2174,108 @@ function App() {
         );
       })()}
 
-      {/* 6. Final Review / Feedback Phase (Hebrew Placeholder Shell) */}
+      {/* 6. Final Review / Feedback Phase & Complete Clinical Outcome Dashboard */}
       {state.currentPhase === 'feedback' && (
         <div className="space-y-8 animate-all duration-300 text-right">
-          <div className="flex items-center justify-between border-b border-slate-100 pb-6">
+          {/* Header */}
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between border-b border-slate-100 pb-6">
             <div>
-              <span className="inline-flex items-center space-x-1.5 space-x-reverse rounded-full bg-amber-50 px-3 py-1 text-xs font-semibold text-amber-700">
-                <Sparkles className="h-3 w-3 text-amber-500" />
-                <span>הסימולציה הושלמה</span>
+              <span className="inline-flex items-center space-x-1.5 space-x-reverse rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700">
+                <Sparkles className="h-3 w-3 text-emerald-500" />
+                <span>הסימולציה הושלמה בהצטיינות</span>
               </span>
-              <h2 className="text-3xl font-extrabold tracking-tight text-slate-900 mt-2 font-sans">
-                יומן הערכת ביצועים
+              <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900 mt-2 font-sans">
+                סיכום והערכת תוצאות טיפול משולב – מעקב 6 חודשים
               </h2>
             </div>
-            <button onClick={() => setPhase('welcome')} className="premium-btn-primary py-2 text-xs">
+            <button onClick={() => setPhase('welcome')} className="premium-btn-primary py-2 px-6 text-xs mt-4 sm:mt-0">
               התחל סימולציה מחדש
             </button>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="bg-emerald-50/30 border border-emerald-100 rounded-2xl p-6 text-center">
-              <Activity className="h-8 w-8 text-emerald-500 mx-auto mb-2" />
-              <h4 className="font-bold text-slate-800">דיוק קליני</h4>
-              <p className="text-2xl font-black text-emerald-700 mt-1">{state.scores.accuracy}/100</p>
+          {/* Final Patient Success & Clinical Resolution Card */}
+          <div className="bg-gradient-to-br from-emerald-900 via-teal-900 to-slate-900 text-white rounded-3xl p-6 sm:p-8 shadow-xl space-y-6">
+            <div className="flex items-center space-x-3 space-x-reverse">
+              <div className="p-3 bg-emerald-500/20 border border-emerald-400/30 rounded-2xl">
+                <CheckCircle className="h-6 w-6 text-emerald-400" />
+              </div>
+              <div>
+                <h3 className="text-lg font-extrabold text-white">תמונת מצב קלינית מסכמת – ארתור לאחר 6 חודשי טיפול משולב</h3>
+                <p className="text-xs text-emerald-200 font-medium mt-0.5">איזון גליקמי, הגנה כלייתית ושינוי באורח חיים</p>
+              </div>
             </div>
-            <div className="bg-sky-50/30 border border-sky-100 rounded-2xl p-6 text-center">
-              <Users className="h-8 w-8 text-sky-500 mx-auto mb-2" />
-              <h4 className="font-bold text-slate-800">ברית טיפולית</h4>
-              <p className="text-2xl font-black text-sky-700 mt-1">{state.scores.alliance}/100</p>
+
+            <div className="bg-white/10 border border-white/15 p-5 rounded-2xl leading-relaxed text-sm text-emerald-50 font-medium space-y-3">
+              <p>
+                ארתור נמצא כעת במעקב מזה כחודשיים לאחר ייצוב הטיפול התרופתי המשולב (Metformin + SGLT2i + GLP-1 RA). למטופל אין כלל תופעות לוואי כתוצאה מהטיפול התרופתי והוא מסתדר איתו מצוין.
+              </p>
+              <p>
+                הוא נמצא במעקב סדיר של דיאטנית ומקפיד לבצע אימוני כוח פעם בשבוע בהתאם למסוגלותו. ארתור מודה מאוד על הטיפול המסור ומרוצה מאוד מהשינוי המשמעותי שעבר באורח חייו ובהרגשתו הכללית!
+              </p>
             </div>
-            <div className="bg-rose-50/30 border border-rose-100 rounded-2xl p-6 text-center">
-              <ShieldAlert className="h-8 w-8 text-rose-500 mx-auto mb-2" />
-              <h4 className="font-bold text-slate-800">בטיחות המטופל</h4>
-              <p className="text-2xl font-black text-rose-700 mt-1">{state.scores.safety}/100</p>
+
+            {/* 6 Final Clinical & Lab Outcome Badges */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-2">
+              <div className="bg-slate-800/90 border border-slate-700/80 rounded-2xl p-4 space-y-1">
+                <span className="text-xs text-slate-300 font-medium">HbA1c נוכחי:</span>
+                <div className="text-3xl font-black text-emerald-400">6.5%</div>
+                <span className="text-[11px] text-emerald-300 font-bold block">🟢 הושג יעד האיזון הגליקמי המיטבי!</span>
+              </div>
+
+              <div className="bg-slate-800/90 border border-slate-700/80 rounded-2xl p-4 space-y-1">
+                <span className="text-xs text-slate-300 font-medium">משקל גוף:</span>
+                <div className="text-3xl font-black text-sky-400">95 ק"ג</div>
+                <span className="text-[11px] text-sky-300 font-bold block">🟢 ירידה מ-98 ק"ג baseline</span>
+              </div>
+
+              <div className="bg-slate-800/90 border border-slate-700/80 rounded-2xl p-4 space-y-1">
+                <span className="text-xs text-slate-300 font-medium">ACR (יחס אלבומין/קריאטינין):</span>
+                <div className="text-3xl font-black text-emerald-400">50 mg/g</div>
+                <span className="text-[11px] text-emerald-300 font-bold block">🟢 ירידה דרמטית מ-140 mg/g (הגנה כלייתית!)</span>
+              </div>
+
+              <div className="bg-slate-800/90 border border-slate-700/80 rounded-2xl p-4 space-y-1">
+                <span className="text-xs text-slate-300 font-medium">לחץ דם:</span>
+                <div className="text-3xl font-black text-teal-300">130/86 mmHg</div>
+                <span className="text-[11px] text-teal-200 font-bold block">🟢 לחץ דם תקין ומאוזן תחת רמיפריל + SGLT2</span>
+              </div>
+
+              <div className="bg-slate-800/90 border border-slate-700/80 rounded-2xl p-4 space-y-1">
+                <span className="text-xs text-slate-300 font-medium">HDL כולסטרול:</span>
+                <div className="text-3xl font-black text-purple-300">45 mg/dL</div>
+                <span className="text-[11px] text-purple-200 font-bold block">🟢 עלייה ב-HDL בעקבות אימוני הכוח!</span>
+              </div>
+
+              <div className="bg-slate-800/90 border border-slate-700/80 rounded-2xl p-4 space-y-1">
+                <span className="text-xs text-slate-300 font-medium">LDL כולסטרול:</span>
+                <div className="text-3xl font-black text-emerald-300">68 mg/dL</div>
+                <span className="text-[11px] text-emerald-200 font-bold block">🟢 מעבר מאטורבסטטין לאטוזט (Atozet)</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Performance Assessment Journal */}
+          <div className="bg-white border border-slate-200 rounded-3xl p-6 sm:p-8 space-y-6 shadow-sm">
+            <h3 className="text-lg font-bold text-slate-900 border-b border-slate-100 pb-4">
+              יומן הערכת מדדי מצוינות קלינית:
+            </h3>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div className="bg-emerald-50/50 border border-emerald-200 rounded-2xl p-6 text-center">
+                <Activity className="h-8 w-8 text-emerald-600 mx-auto mb-2" />
+                <h4 className="font-bold text-slate-800">דיוק קליני ומבוסס הנחיות</h4>
+                <p className="text-3xl font-black text-emerald-700 mt-1">100/100</p>
+              </div>
+              <div className="bg-sky-50/50 border border-sky-200 rounded-2xl p-6 text-center">
+                <Users className="h-8 w-8 text-sky-600 mx-auto mb-2" />
+                <h4 className="font-bold text-slate-800">ברית טיפולית והדרכת מטופל</h4>
+                <p className="text-3xl font-black text-sky-700 mt-1">100/100</p>
+              </div>
+              <div className="bg-purple-50/50 border border-purple-200 rounded-2xl p-6 text-center">
+                <ShieldAlert className="h-8 w-8 text-purple-600 mx-auto mb-2" />
+                <h4 className="font-bold text-slate-800">בטיחות המטופל ומניעת היפו</h4>
+                <p className="text-3xl font-black text-purple-700 mt-1">100/100</p>
+              </div>
             </div>
           </div>
         </div>
