@@ -1129,113 +1129,165 @@ function App() {
                   </div>
 
                   <div className="space-y-3 flex-1 py-4">
-                    {/* Tool 1: Pulses */}
-                    <button
-                      onClick={() => handleApplyTool('pulses')}
-                      className={`w-full text-right p-4 rounded-2xl border transition-all duration-305 flex items-center justify-between shadow-sm group ${
-                        selectedFootTool === 'pulses'
-                          ? 'border-indigo-500 bg-indigo-50/20 text-indigo-950 font-black'
-                          : 'border-slate-100 bg-white hover:border-slate-200 text-slate-700'
-                      }`}
-                    >
-                      <div className="flex items-center space-x-3 space-x-reverse">
-                        <span className={`h-8 w-8 rounded-xl flex items-center justify-center transition-colors ${
-                          selectedFootTool === 'pulses' ? 'bg-indigo-100 text-indigo-600' : 'bg-slate-50 text-slate-500'
-                        }`}>
-                          <Activity className="h-4 w-4" />
-                        </span>
-                        <div className="text-right">
-                          <span className="text-xs font-black block">מישוש דפקים פריפריים</span>
-                          <span className="text-[9px] text-slate-400 font-medium">עורקי גב הרגל והקרסול</span>
-                        </div>
-                      </div>
-                      {completedTools.pulses && (
-                        <span className="text-emerald-500 bg-emerald-50 rounded-full p-1 shadow-sm shrink-0">
-                          <CheckCircle2 className="h-4 w-4" />
-                        </span>
-                      )}
-                    </button>
+                    {(() => {
+                      const nextToolToApply = !completedTools.pulses 
+                        ? 'pulses' 
+                        : !completedTools.doppler 
+                          ? 'doppler' 
+                          : !completedTools.monofilament 
+                            ? 'monofilament' 
+                            : !completedTools.visual 
+                              ? 'visual' 
+                              : null;
 
-                    {/* Tool 2: Doppler */}
-                    <button
-                      onClick={() => handleApplyTool('doppler')}
-                      className={`w-full text-right p-4 rounded-2xl border transition-all duration-305 flex items-center justify-between shadow-sm group ${
-                        selectedFootTool === 'doppler'
-                          ? 'border-indigo-500 bg-indigo-50/20 text-indigo-950 font-black'
-                          : 'border-slate-100 bg-white hover:border-slate-200 text-slate-700'
-                      }`}
-                    >
-                      <div className="flex items-center space-x-3 space-x-reverse">
-                        <span className={`h-8 w-8 rounded-xl flex items-center justify-center transition-colors ${
-                          selectedFootTool === 'doppler' ? 'bg-indigo-100 text-indigo-600' : 'bg-slate-50 text-slate-500'
-                        }`}>
-                          <Volume2 className="h-4 w-4" />
-                        </span>
-                        <div className="text-right">
-                          <span className="text-xs font-black block">בדיקת דופלר (Doppler)</span>
-                          <span className="text-[9px] text-slate-400 font-medium">אישוש זרימה אקוסטי מועדף</span>
-                        </div>
-                      </div>
-                      {completedTools.doppler && (
-                        <span className="text-emerald-500 bg-emerald-50 rounded-full p-1 shadow-sm shrink-0">
-                          <CheckCircle2 className="h-4 w-4" />
-                        </span>
-                      )}
-                    </button>
+                      return (
+                        <>
+                          {/* Tool 1: Pulses */}
+                          <button
+                            onClick={() => handleApplyTool('pulses')}
+                            className={`w-full text-right p-4 rounded-2xl border transition-all duration-305 flex items-center justify-between shadow-sm group ${
+                              nextToolToApply === 'pulses'
+                                ? 'ring-4 ring-indigo-500 ring-offset-2 animate-pulse border-indigo-500 bg-indigo-50/40 text-indigo-950 font-black'
+                                : selectedFootTool === 'pulses'
+                                  ? 'border-indigo-500 bg-indigo-50/20 text-indigo-950 font-black'
+                                  : 'border-slate-100 bg-white hover:border-slate-200 text-slate-700'
+                            }`}
+                          >
+                            <div className="flex items-center space-x-3 space-x-reverse">
+                              <span className={`h-8 w-8 rounded-xl flex items-center justify-center transition-colors ${
+                                selectedFootTool === 'pulses' || nextToolToApply === 'pulses' ? 'bg-indigo-100 text-indigo-600' : 'bg-slate-50 text-slate-500'
+                              }`}>
+                                <Activity className="h-4 w-4" />
+                              </span>
+                              <div className="text-right">
+                                <span className="text-xs font-black block flex items-center space-x-2 space-x-reverse">
+                                  <span>מישוש דפקים פריפריים</span>
+                                  {nextToolToApply === 'pulses' && (
+                                    <span className="text-[10px] bg-indigo-600 text-white px-2 py-0.5 rounded-full font-extrabold animate-bounce">
+                                      לחץ כאן כעת
+                                    </span>
+                                  )}
+                                </span>
+                                <span className="text-[9px] text-slate-400 font-medium">עורקי גב הרגל והקרסול</span>
+                              </div>
+                            </div>
+                            {completedTools.pulses && (
+                              <span className="text-emerald-500 bg-emerald-50 rounded-full p-1 shadow-sm shrink-0">
+                                <CheckCircle2 className="h-4 w-4" />
+                              </span>
+                            )}
+                          </button>
 
-                    {/* Tool 3: Monofilament */}
-                    <button
-                      onClick={() => handleApplyTool('monofilament')}
-                      className={`w-full text-right p-4 rounded-2xl border transition-all duration-305 flex items-center justify-between shadow-sm group ${
-                        selectedFootTool === 'monofilament'
-                          ? 'border-indigo-500 bg-indigo-50/20 text-indigo-950 font-black'
-                          : 'border-slate-100 bg-white hover:border-slate-200 text-slate-700'
-                      }`}
-                    >
-                      <div className="flex items-center space-x-3 space-x-reverse">
-                        <span className={`h-8 w-8 rounded-xl flex items-center justify-center transition-colors ${
-                          selectedFootTool === 'monofilament' ? 'bg-indigo-100 text-indigo-600' : 'bg-slate-50 text-slate-500'
-                        }`}>
-                          <HelpCircle className="h-4 w-4" />
-                        </span>
-                        <div className="text-right">
-                          <span className="text-xs font-black block">מונופילמנט 10 גרם</span>
-                          <span className="text-[9px] text-slate-400 font-medium">מיפוי נוירופתיה תחושתית</span>
-                        </div>
-                      </div>
-                      {completedTools.monofilament && (
-                        <span className="text-emerald-500 bg-emerald-50 rounded-full p-1 shadow-sm shrink-0">
-                          <CheckCircle2 className="h-4 w-4" />
-                        </span>
-                      )}
-                    </button>
+                          {/* Tool 2: Doppler */}
+                          <button
+                            onClick={() => handleApplyTool('doppler')}
+                            className={`w-full text-right p-4 rounded-2xl border transition-all duration-305 flex items-center justify-between shadow-sm group ${
+                              nextToolToApply === 'doppler'
+                                ? 'ring-4 ring-indigo-500 ring-offset-2 animate-pulse border-indigo-500 bg-indigo-50/40 text-indigo-950 font-black'
+                                : selectedFootTool === 'doppler'
+                                  ? 'border-indigo-500 bg-indigo-50/20 text-indigo-950 font-black'
+                                  : 'border-slate-100 bg-white hover:border-slate-200 text-slate-700'
+                            }`}
+                          >
+                            <div className="flex items-center space-x-3 space-x-reverse">
+                              <span className={`h-8 w-8 rounded-xl flex items-center justify-center transition-colors ${
+                                selectedFootTool === 'doppler' || nextToolToApply === 'doppler' ? 'bg-indigo-100 text-indigo-600' : 'bg-slate-50 text-slate-500'
+                              }`}>
+                                <Volume2 className="h-4 w-4" />
+                              </span>
+                              <div className="text-right">
+                                <span className="text-xs font-black block flex items-center space-x-2 space-x-reverse">
+                                  <span>בדיקת דופלר (Doppler)</span>
+                                  {nextToolToApply === 'doppler' && (
+                                    <span className="text-[10px] bg-indigo-600 text-white px-2 py-0.5 rounded-full font-extrabold animate-bounce">
+                                      לחץ כאן כעת
+                                    </span>
+                                  )}
+                                </span>
+                                <span className="text-[9px] text-slate-400 font-medium">אישוש זרימה אקוסטי מועדף</span>
+                              </div>
+                            </div>
+                            {completedTools.doppler && (
+                              <span className="text-emerald-500 bg-emerald-50 rounded-full p-1 shadow-sm shrink-0">
+                                <CheckCircle2 className="h-4 w-4" />
+                              </span>
+                            )}
+                          </button>
 
-                    {/* Tool 4: Visual */}
-                    <button
-                      onClick={() => handleApplyTool('visual')}
-                      className={`w-full text-right p-4 rounded-2xl border transition-all duration-305 flex items-center justify-between shadow-sm group ${
-                        selectedFootTool === 'visual'
-                          ? 'border-indigo-500 bg-indigo-50/20 text-indigo-950 font-black'
-                          : 'border-slate-100 bg-white hover:border-slate-200 text-slate-700'
-                      }`}
-                    >
-                      <div className="flex items-center space-x-3 space-x-reverse">
-                        <span className={`h-8 w-8 rounded-xl flex items-center justify-center transition-colors ${
-                          selectedFootTool === 'visual' ? 'bg-indigo-100 text-indigo-600' : 'bg-slate-50 text-slate-500'
-                        }`}>
-                          <FileText className="h-4 w-4" />
-                        </span>
-                        <div className="text-right">
-                          <span className="text-xs font-black block">אומדן ויזואלי ומבני</span>
-                          <span className="text-[9px] text-slate-400 font-medium">עור, יבלות, כיבים והנעלה</span>
-                        </div>
-                      </div>
-                      {completedTools.visual && (
-                        <span className="text-emerald-500 bg-emerald-50 rounded-full p-1 shadow-sm shrink-0">
-                          <CheckCircle2 className="h-4 w-4" />
-                        </span>
-                      )}
-                    </button>
+                          {/* Tool 3: Monofilament */}
+                          <button
+                            onClick={() => handleApplyTool('monofilament')}
+                            className={`w-full text-right p-4 rounded-2xl border transition-all duration-305 flex items-center justify-between shadow-sm group ${
+                              nextToolToApply === 'monofilament'
+                                ? 'ring-4 ring-indigo-500 ring-offset-2 animate-pulse border-indigo-500 bg-indigo-50/40 text-indigo-950 font-black'
+                                : selectedFootTool === 'monofilament'
+                                  ? 'border-indigo-500 bg-indigo-50/20 text-indigo-950 font-black'
+                                  : 'border-slate-100 bg-white hover:border-slate-200 text-slate-700'
+                            }`}
+                          >
+                            <div className="flex items-center space-x-3 space-x-reverse">
+                              <span className={`h-8 w-8 rounded-xl flex items-center justify-center transition-colors ${
+                                selectedFootTool === 'monofilament' || nextToolToApply === 'monofilament' ? 'bg-indigo-100 text-indigo-600' : 'bg-slate-50 text-slate-500'
+                              }`}>
+                                <HelpCircle className="h-4 w-4" />
+                              </span>
+                              <div className="text-right">
+                                <span className="text-xs font-black block flex items-center space-x-2 space-x-reverse">
+                                  <span>מונופילמנט 10 גרם</span>
+                                  {nextToolToApply === 'monofilament' && (
+                                    <span className="text-[10px] bg-indigo-600 text-white px-2 py-0.5 rounded-full font-extrabold animate-bounce">
+                                      לחץ כאן כעת
+                                    </span>
+                                  )}
+                                </span>
+                                <span className="text-[9px] text-slate-400 font-medium">מיפוי נוירופתיה תחושתית</span>
+                              </div>
+                            </div>
+                            {completedTools.monofilament && (
+                              <span className="text-emerald-500 bg-emerald-50 rounded-full p-1 shadow-sm shrink-0">
+                                <CheckCircle2 className="h-4 w-4" />
+                              </span>
+                            )}
+                          </button>
+
+                          {/* Tool 4: Visual */}
+                          <button
+                            onClick={() => handleApplyTool('visual')}
+                            className={`w-full text-right p-4 rounded-2xl border transition-all duration-305 flex items-center justify-between shadow-sm group ${
+                              nextToolToApply === 'visual'
+                                ? 'ring-4 ring-indigo-500 ring-offset-2 animate-pulse border-indigo-500 bg-indigo-50/40 text-indigo-950 font-black'
+                                : selectedFootTool === 'visual'
+                                  ? 'border-indigo-500 bg-indigo-50/20 text-indigo-950 font-black'
+                                  : 'border-slate-100 bg-white hover:border-slate-200 text-slate-700'
+                            }`}
+                          >
+                            <div className="flex items-center space-x-3 space-x-reverse">
+                              <span className={`h-8 w-8 rounded-xl flex items-center justify-center transition-colors ${
+                                selectedFootTool === 'visual' || nextToolToApply === 'visual' ? 'bg-indigo-100 text-indigo-600' : 'bg-slate-50 text-slate-500'
+                              }`}>
+                                <FileText className="h-4 w-4" />
+                              </span>
+                              <div className="text-right">
+                                <span className="text-xs font-black block flex items-center space-x-2 space-x-reverse">
+                                  <span>אומדן ויזואלי ומבני</span>
+                                  {nextToolToApply === 'visual' && (
+                                    <span className="text-[10px] bg-indigo-600 text-white px-2 py-0.5 rounded-full font-extrabold animate-bounce">
+                                      לחץ כאן כעת
+                                    </span>
+                                  )}
+                                </span>
+                                <span className="text-[9px] text-slate-400 font-medium">עור, יבלות, כיבים והנעלה</span>
+                              </div>
+                            </div>
+                            {completedTools.visual && (
+                              <span className="text-emerald-500 bg-emerald-50 rounded-full p-1 shadow-sm shrink-0">
+                                <CheckCircle2 className="h-4 w-4" />
+                              </span>
+                            )}
+                          </button>
+                        </>
+                      );
+                    })()}
                   </div>
 
                   <div className="bg-slate-50 p-4 rounded-2xl border border-slate-200/50 text-[10px] text-slate-400 font-semibold leading-relaxed text-right">
@@ -1783,6 +1835,17 @@ function App() {
                         <span>צ'קליסט התערבויות סיעודיות מומחה (יש לאשר את כל הסעיפים לביסוס התוכנית):</span>
                       </h4>
                       
+                      {/* SGLT2 Pre-Assessment Clinical Guidance Box */}
+                      {part2Choice === 'sglt2' && (
+                        <div className="p-4 rounded-2xl bg-amber-50/90 border border-amber-200 text-amber-950 flex items-start space-x-3 space-x-reverse mb-4 text-xs font-semibold leading-relaxed shadow-sm">
+                          <AlertCircle className="h-5 w-5 text-amber-600 shrink-0 mt-0.5" />
+                          <div>
+                            <span className="font-extrabold block text-sm text-amber-950 mb-1">הערכה קלינית מוקדמת לפני תחילת SGLT2i:</span>
+                            המטופל אינו רזה (BMI גבוה), רמת ה-HbA1c הינה מעל 7.0% אך פחות מ-10.0% (ב-HbA1c גבוה ללא טיפול באינסולין או במטופלים המראים סימנים לסוכרת על רקע של חוסר באינסולין יש להיזהר במתן SGLT2 מחשש ל-eDKA).
+                          </div>
+                        </div>
+                      )}
+
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         {(part2Choice === 'sglt2' ? [
                           { id: 'hygiene', text: 'הדרכה קפדנית על היגיינה אישית ואינטימית למניעת זיהומים פטרייתיים בדרכי השתן (עקב גליקוזוריה).' },
@@ -2110,6 +2173,17 @@ function App() {
                   </h3>
                 </div>
 
+                {/* SGLT2 Pre-Assessment Guidance Box in Counselling Phase */}
+                {(isGlp1Initial && counsellingSecondLineChoice === 'sglt2') && (
+                  <div className="p-4 rounded-2xl bg-amber-50/90 border border-amber-200 text-amber-950 flex items-start space-x-3 space-x-reverse mb-4 text-xs font-semibold leading-relaxed shadow-sm">
+                    <AlertCircle className="h-5 w-5 text-amber-600 shrink-0 mt-0.5" />
+                    <div>
+                      <span className="font-extrabold block text-sm text-amber-950 mb-1">הערכה קלינית מוקדמת לפני תחילת SGLT2i:</span>
+                      המטופל אינו רזה (BMI גבוה), רמת ה-HbA1c הינה מעל 7.0% אך פחות מ-10.0% (ב-HbA1c גבוה ללא טיפול באינסולין או במטופלים המראים סימנים לסוכרת על רקע של חוסר באינסולין יש להיזהר במתן SGLT2 מחשש ל-eDKA).
+                    </div>
+                  </div>
+                )}
+
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {requiredChecklistItems.map((item) => {
                     const isChecked = !!counsellingChecklist[item.id];
@@ -2207,7 +2281,7 @@ function App() {
 
             <div className="bg-white/10 border border-white/15 p-5 rounded-2xl leading-relaxed text-sm text-emerald-50 font-medium space-y-3">
               <p>
-                ארתור נמצא כעת במעקב מזה כחודשיים לאחר ייצוב הטיפול התרופתי המשולב (Metformin + SGLT2i + GLP-1 RA). למטופל אין כלל תופעות לוואי כתוצאה מהטיפול התרופתי והוא מסתדר איתו מצוין.
+                ארתור כעת מקבל טיפול תרופתי משולב (Metformin + SGLT2i + GLP-1 RA). למטופל אין כלל תופעות לוואי כתוצאה מהטיפול התרופתי והוא מסתדר איתו מצוין.
               </p>
               <p>
                 הוא נמצא במעקב סדיר של דיאטנית ומקפיד לבצע אימוני כוח פעם בשבוע בהתאם למסוגלותו. ארתור מודה מאוד על הטיפול המסור ומרוצה מאוד מהשינוי המשמעותי שעבר באורח חייו ובהרגשתו הכללית!
@@ -2224,7 +2298,7 @@ function App() {
 
               <div className="bg-slate-800/90 border border-slate-700/80 rounded-2xl p-4 space-y-1">
                 <span className="text-xs text-slate-300 font-medium">משקל גוף:</span>
-                <div className="text-3xl font-black text-sky-400">95 ק"ג</div>
+                <div className="text-3xl font-black text-sky-400">85 ק"ג</div>
                 <span className="text-[11px] text-sky-300 font-bold block">🟢 ירידה מ-98 ק"ג baseline</span>
               </div>
 
@@ -2273,7 +2347,7 @@ function App() {
               </div>
               <div className="bg-purple-50/50 border border-purple-200 rounded-2xl p-6 text-center">
                 <ShieldAlert className="h-8 w-8 text-purple-600 mx-auto mb-2" />
-                <h4 className="font-bold text-slate-800">בטיחות המטופל ומניעת היפו</h4>
+                <h4 className="font-bold text-slate-800">בטיחות המטופל</h4>
                 <p className="text-3xl font-black text-purple-700 mt-1">100/100</p>
               </div>
             </div>
