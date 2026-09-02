@@ -193,23 +193,6 @@ function App() {
 
   // Handler to apply clinical examination tool
   const handleApplyTool = (tool: 'pulses' | 'doppler' | 'monofilament' | 'visual') => {
-    // Award Doppler bonus points only once!
-    if (tool === 'doppler' && !completedTools.doppler) {
-      setState(prev => {
-        const newAccuracy = Math.min(100, prev.scores.accuracy + 5);
-        const newAlliance = Math.min(100, prev.scores.alliance + 5);
-        return {
-          ...prev,
-          scores: {
-            ...prev.scores,
-            accuracy: newAccuracy,
-            alliance: newAlliance,
-          }
-        };
-      });
-    }
-
-    setCompletedTools(prev => ({ ...prev, [tool]: true }));
     setSelectedFootTool(tool);
     setActiveFindingText(null);
     setActiveFindingTitle(null);
@@ -232,6 +215,7 @@ function App() {
 
     if (selectedFootTool === 'pulses') {
       if (hotspotType === 'dp' || hotspotType === 'tp') {
+        setCompletedTools(prev => ({ ...prev, pulses: true }));
         setActiveFindingTitle("מישוש דפקים פריפריים");
         setActiveFindingText("נמוש דפק תקין ומלא. דפקים פריפריים תקינים ומלאים, זרימת דם תקינה ושמורה בשמיעת דופלר.");
         setTipText("נמוש דפק תקין ומלא בשני עורקי כפות הרגליים.");
@@ -240,6 +224,7 @@ function App() {
       }
     } else if (selectedFootTool === 'doppler') {
       if (hotspotType === 'dp' || hotspotType === 'tp') {
+        setCompletedTools(prev => ({ ...prev, doppler: true }));
         setActiveFindingTitle("בדיקת דופלר (Doppler)");
         setActiveFindingText("בשמיעת דופלר נשמע גל תקין וזרימת דם שמורה. דפקים פריפריים תקינים ומלאים, זרימת דם תקינה ושמורה בשמיעת דופלר.");
         setTipText("נמדד גל תקין בדופלר אקוסטי בשתי כפות הרגליים.");
@@ -248,6 +233,7 @@ function App() {
       }
     } else if (selectedFootTool === 'monofilament') {
       if (hotspotType === 'mono') {
+        setCompletedTools(prev => ({ ...prev, monofilament: true }));
         setActiveFindingTitle("בדיקת מונופילמנט 10 גרם");
         setActiveFindingText("אובדן תחושה מוחלט ברוב נקודות הבדיקה במונופילמנט 10 גרם. המטופל אינו מרגיש את סיב המונופילמנט בכריות כף הרגל ובבהונות (נוירופתיה היקפית מובהקת).");
         setTipText("אובדן תחושה מוחלט ברוב נקודות הבדיקה במונופילמנט 10 גרם. המטופל אינו מרגיש את סיב המונופילמנט בכריות כף הרגל ובבהונות (נוירופתיה היקפית מובהקת).");
@@ -256,6 +242,7 @@ function App() {
       }
     } else if (selectedFootTool === 'visual') {
       if (hotspotType === 'visual') {
+        setCompletedTools(prev => ({ ...prev, visual: true }));
         setActiveFindingTitle("אומדן ויזואלי ומבני");
         setActiveFindingText("עור יבש קל ופטרת בציפורניים (Onychomycosis). ללא עיוות גרמי של כף הרגל וללא כיב פעיל בהווה.");
         setTipText("עור יבש קל ופטרת בציפורניים (Onychomycosis). ללא עיוות גרמי של כף הרגל וללא כיב פעיל בהווה.");
