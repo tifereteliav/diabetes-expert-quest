@@ -1780,11 +1780,14 @@ function App() {
                           { id: 'hygiene', text: 'הדרכה קפדנית על היגיינה אישית ואינטימית למניעת זיהומים פטרייתיים בדרכי השתן (עקב גליקוזוריה).' },
                           { id: 'hydration', text: 'הסבר על חשיבות השתייה המרובה ומניעת התייבשות (אפקט משתן מתון).' },
                           { id: 'sickdays', text: 'הדרכה על "חוקי ימי מחלה" (Sick Day Rules) - הפסקה זמנית של התרופה במצבים של שלשול, הקאה או צום לצורך מניעת eDKA.' },
+                          { id: 'labs', text: 'ניטור תקופתי של תפקודי כליות (Serum Creatinine, eGFR) ואלקטרוליטים.' },
                           { id: 'bp', text: 'ניטור הדוק של לחצי דם עקב אפקט סינרגיסטי להורדת לחץ דם בשילוב עם רמיפריל.' }
                         ] : [
                           { id: 'eyecare', text: 'וידוא בדיקת רופא עיניים (קרקעית עין) בשנה האחרונה ושלילת רטינופתיה סוכרתית המצריכה טיפול (איזון גליקמי מהיר תחת GLP-1 עלול להחמיר רטינופתיה).' },
                           { id: 'technique', text: 'הדרכה ותרגול טכניקת הזרקה תת-עורית (Subcutaneous Injection) פעם בשבוע.' },
                           { id: 'gi', text: 'הסבר מפורט על תופעות לוואי במערכת העיכול (בחילות) וחשיבות העלייה ההדרגתית במינון (Titration).' },
+                          { id: 'meals', text: 'הנחיה לאכילת ארוחות קטנות יותר והפסקת אכילה ברגע שמרגישים מלאים למניעת בחילות או הקאות.' },
+                          { id: 'pancreatitis', text: 'מעקב אחר תסמינים מחשידים לדלקת לבלב (פנקריאטיטיס) - כאב בטן חריף מקרין לגב.' },
                           { id: 'followup', text: 'בניית תוכנית מעקב אחר הסתגלות המטופל לטיפול ולתופעות הלוואי.' }
                         ]).map((item) => {
                           const isChecked = !!part2Checklist[item.id];
@@ -1819,7 +1822,8 @@ function App() {
                   )}
 
                   {/* Complete Action Panel */}
-                  {Object.values(part2Checklist).filter(Boolean).length === 4 && (
+                  {((part2Choice === 'sglt2' && Object.values(part2Checklist).filter(Boolean).length === 5) ||
+                    (part2Choice === 'glp1' && Object.values(part2Checklist).filter(Boolean).length === 6)) && (
                     <div className="flex justify-center pt-4 border-t border-slate-100 animate-all duration-300">
                       <button
                         type="button"
