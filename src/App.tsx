@@ -1767,59 +1767,56 @@ function App() {
                     </p>
                   </div>
 
-                  {/* Checklist Card */}
-                  <div className="bg-white border border-slate-200 rounded-3xl p-6">
-                    <h4 className="text-base font-bold text-slate-900 flex items-center space-x-2 space-x-reverse mb-4">
-                      <FileText className="h-5 w-5 text-sky-500" />
-                      <span>צ'קליסט התערבויות סיעודיות מומחה (יש לאשר את כל הסעיפים לביסוס התוכנית):</span>
-                    </h4>
-                    
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      {(part2Choice === 'sglt2' ? [
-                        { id: 'hygiene', text: 'הדרכה קפדנית על היגיינה אישית ואינטימית למניעת זיהומים פטרייתיים בדרכי השתן (עקב גליקוזוריה).' },
-                        { id: 'hydration', text: 'הסבר על חשיבות השתייה המרובה ומניעת התייבשות (אפקט משתן מתון).' },
-                        { id: 'sickdays', text: 'הדרכה על "חוקי ימי מחלה" (Sick Day Rules) - הפסקה זמנית של התרופה במצבים של שלשול, הקאה או צום לצורך מניעת eDKA.' },
-                        { id: 'labs', text: 'ניטור תקופתי של תפקודי כליות (Serum Creatinine, eGFR) ואלקטרוליטים.' }
-                      ] : part2Choice === 'glp1' ? [
-                        { id: 'eyecare', text: 'וידוא בדיקת רופא עיניים (קרקעית עין) בשנה האחרונה ושלילת רטינופתיה סוכרתית המצריכה טיפול (איזון גליקמי מהיר תחת GLP-1 עלול להחמיר רטינופתיה).' },
-                        { id: 'technique', text: 'הדרכה ותרגול טכניקת הזרקה תת-עורית (Subcutaneous Injection) פעם בשבוע.' },
-                        { id: 'gi', text: 'הסבר מפורט על תופעות לוואי במערכת העיכול (בחילות) וחשיבות העלייה ההדרגתית במינון (Titration).' },
-                        { id: 'meals', text: 'הנחיה לאכילת ארוחות קטנות יותר והפסקת אכילה ברגע שמרגישים מלאים למניעת בחילות או הקאות.' }
-                      ] : [
-                        { id: 'cognitive', text: 'תיאום תוכנית הדרכה דו-שלבית מקיפה לשתי התרופות החדשות למניעת עומס קוגניטיבי על המטופל.' },
-                        { id: 'bp', text: 'ניטור הדוק של לחצי דם עקב אפקט סינרגיסטי להורדת ל"ד בשילוב עם רמיפריל.' },
-                        { id: 'followup', text: 'בניית תוכנית מעקב שבועית וטלפונית אחר הסתגלות המטופל ותופעות לוואי.' },
-                        { id: 'adherence', text: 'הערכת ההיענות לטיפול ובניית מנגנוני תזכורת (כזכור, ארתור נוטה לשכוח את מנת הערב של המטפורמין).' }
-                      ]).map((item) => {
-                        const isChecked = !!part2Checklist[item.id];
-                        return (
-                          <button
-                            key={item.id}
-                            type="button"
-                            onClick={() => {
-                              setPart2Checklist(prev => ({ ...prev, [item.id]: !prev[item.id] }));
-                            }}
-                            className={`flex text-right items-start space-x-3 space-x-reverse p-4 rounded-2xl border transition-all duration-300 ${
-                              isChecked 
-                                ? 'border-sky-500 bg-sky-50/20 text-slate-800 shadow-sm' 
-                                : 'border-slate-100 bg-slate-50/30 text-slate-650 hover:border-slate-200'
-                            }`}
-                          >
-                            <div className={`h-5 w-5 rounded border flex items-center justify-center shrink-0 mt-0.5 transition-all duration-300 ${
-                              isChecked ? 'bg-sky-500 border-sky-500 text-white' : 'border-slate-300 bg-white'
-                            }`}>
-                              {isChecked && (
-                                <svg className="h-3 w-3 fill-current" viewBox="0 0 20 20">
-                                  <path d="M0 11l2-2 5 5L18 3l2 2L7 18z"/>
-                                </svg>
-                              )}
-                            </div>
-                            <span className="text-xs font-semibold leading-relaxed">{item.text}</span>
-                          </button>
-                        );
-                      })}
+                  {/* Checklist Card (Only shown for single treatment options: SGLT2 or GLP-1) */}
+                  {part2Choice !== 'hybrid' && (
+                    <div className="bg-white border border-slate-200 rounded-3xl p-6">
+                      <h4 className="text-base font-bold text-slate-900 flex items-center space-x-2 space-x-reverse mb-4">
+                        <FileText className="h-5 w-5 text-sky-500" />
+                        <span>צ'קליסט התערבויות סיעודיות מומחה (יש לאשר את כל הסעיפים לביסוס התוכנית):</span>
+                      </h4>
+                      
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {(part2Choice === 'sglt2' ? [
+                          { id: 'hygiene', text: 'הדרכה קפדנית על היגיינה אישית ואינטימית למניעת זיהומים פטרייתיים בדרכי השתן (עקב גליקוזוריה).' },
+                          { id: 'hydration', text: 'הסבר על חשיבות השתייה המרובה ומניעת התייבשות (אפקט משתן מתון).' },
+                          { id: 'sickdays', text: 'הדרכה על "חוקי ימי מחלה" (Sick Day Rules) - הפסקה זמנית של התרופה במצבים של שלשול, הקאה או צום לצורך מניעת eDKA.' },
+                          { id: 'bp', text: 'ניטור הדוק של לחצי דם עקב אפקט סינרגיסטי להורדת לחץ דם בשילוב עם רמיפריל.' }
+                        ] : [
+                          { id: 'eyecare', text: 'וידוא בדיקת רופא עיניים (קרקעית עין) בשנה האחרונה ושלילת רטינופתיה סוכרתית המצריכה טיפול (איזון גליקמי מהיר תחת GLP-1 עלול להחמיר רטינופתיה).' },
+                          { id: 'technique', text: 'הדרכה ותרגול טכניקת הזרקה תת-עורית (Subcutaneous Injection) פעם בשבוע.' },
+                          { id: 'gi', text: 'הסבר מפורט על תופעות לוואי במערכת העיכול (בחילות) וחשיבות העלייה ההדרגתית במינון (Titration).' },
+                          { id: 'followup', text: 'בניית תוכנית מעקב אחר הסתגלות המטופל לטיפול ולתופעות הלוואי.' }
+                        ]).map((item) => {
+                          const isChecked = !!part2Checklist[item.id];
+                          return (
+                            <button
+                              key={item.id}
+                              type="button"
+                              onClick={() => {
+                                setPart2Checklist(prev => ({ ...prev, [item.id]: !prev[item.id] }));
+                              }}
+                              className={`flex text-right items-start space-x-3 space-x-reverse p-4 rounded-2xl border transition-all duration-300 ${
+                                isChecked 
+                                  ? 'border-sky-500 bg-sky-50/20 text-slate-800 shadow-sm' 
+                                  : 'border-slate-100 bg-slate-50/30 text-slate-650 hover:border-slate-200'
+                              }`}
+                            >
+                              <div className={`h-5 w-5 rounded border flex items-center justify-center shrink-0 mt-0.5 transition-all duration-300 ${
+                                isChecked ? 'bg-sky-500 border-sky-500 text-white' : 'border-slate-300 bg-white'
+                              }`}>
+                                {isChecked && (
+                                  <svg className="h-3 w-3 fill-current" viewBox="0 0 20 20">
+                                    <path d="M0 11l2-2 5 5L18 3l2 2L7 18z"/>
+                                  </svg>
+                                )}
+                              </div>
+                              <span className="text-xs font-semibold leading-relaxed">{item.text}</span>
+                            </button>
+                          );
+                        })}
+                      </div>
                     </div>
-                  </div>
+                  )}
 
                   {/* Complete Action Panel */}
                   {Object.values(part2Checklist).filter(Boolean).length === 4 && (
