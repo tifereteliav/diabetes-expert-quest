@@ -531,28 +531,6 @@ function App() {
 
                 </div>
 
-                {/* Panel 5: כבד ואנמיה */}
-                <div className="bg-white border border-slate-100 rounded-2xl shadow-sm overflow-hidden transition-all duration-300 hover:border-rose-200">
-                  <div className="bg-rose-50/50 px-4 py-3 border-b border-rose-100/50 flex items-center justify-between">
-                    <span className="text-xs font-black text-rose-800">כבד ואנמיה</span>
-                    <Heart className="h-4 w-4 text-rose-500 animate-pulse" />
-                  </div>
-                  <div className="p-6 grid grid-cols-1 md:grid-cols-3 gap-6 divide-y md:divide-y-0 md:divide-x md:divide-x-reverse divide-slate-100">
-                    {patientCase1.labs.other.slice(2, 5).map((lab, index) => (
-                      <div key={lab.name} className={`${index > 0 ? 'pt-4 md:pt-0 md:pr-6' : ''}`}>
-                        <div className="flex justify-between items-start">
-                          <span className="text-sm font-bold text-slate-900">{lab.name}</span>
-                          <div className="text-right">
-                            <span className={`text-sm font-black px-2 py-0.5 rounded-lg ${lab.status === 'high' ? 'text-rose-600 bg-rose-50' : lab.status === 'low' ? 'text-amber-600 bg-amber-50' : 'text-emerald-600 bg-emerald-50'}`}>{lab.value} {lab.unit}</span>
-                            <p className="text-[10px] text-slate-400 font-semibold mt-0.5">טווח: {lab.normalRange}</p>
-                          </div>
-                        </div>
-                        <p className="text-xs text-slate-500 font-medium leading-relaxed mt-1.5">{lab.interpretation}</p>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
               </div>
 
             </div>
