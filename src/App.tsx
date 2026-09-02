@@ -120,6 +120,63 @@ function App() {
     }
   };
 
+  // Complete Simulation Reset Handler
+  const resetSimulation = () => {
+    setState({
+      currentPhase: 'welcome',
+      scores: {
+        accuracy: 100,
+        alliance: 100,
+        safety: 100,
+      },
+      askedQuestions: [],
+      dialogueHistory: [],
+      currentDialogueId: patientCase1.initialDialogueId,
+      selectedTreatments: [],
+      maxUnlockedStep: 0,
+    });
+    setIsDataRead(false);
+
+    // Reset Phase 3 states
+    setSelectedFootTool(null);
+    setCompletedTools({
+      pulses: false,
+      doppler: false,
+      monofilament: false,
+      visual: false,
+    });
+    setInspectedHotspots({
+      pulses: [],
+      doppler: [],
+      monofilament: [],
+      visual: [],
+    });
+    setQuizAnswers({
+      riskLevel: null,
+      frequency: null,
+    });
+    setQuizError(null);
+    setQuizSuccess(false);
+    setActiveFindingText(null);
+    setActiveFindingTitle(null);
+    setTipText("בחר כלי אבחון והקש על נקודות האומדן להצגת ממצאים");
+
+    // Reset Phase 4 states
+    setTreatmentPart('part1');
+    setPart1Checked([]);
+    setPart1Feedback(null);
+    setPart1FeedbackType(null);
+    setPart1Submitted(false);
+    setPart1IsValid(false);
+    setPart2Choice(null);
+    setPart2Checklist({});
+
+    // Reset Phase 5 states
+    setCounsellingTargetAnswer(null);
+    setCounsellingSecondLineChoice(null);
+    setCounsellingChecklist({});
+  };
+
   // Handler for Dialogue choice selection
   const handleDialogueChoice = (choiceId: string, nextId: string, impact: typeof state.scores) => {
     setState(prev => {
@@ -2334,7 +2391,7 @@ function App() {
                 סיכום והערכת תוצאות טיפול משולב – מעקב 6 חודשים
               </h2>
             </div>
-            <button onClick={() => setPhase('welcome')} className="premium-btn-primary py-2 px-6 text-xs mt-4 sm:mt-0">
+            <button onClick={resetSimulation} className="premium-btn-primary py-2 px-6 text-xs mt-4 sm:mt-0">
               התחל סימולציה מחדש
             </button>
           </div>
